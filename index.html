@@ -814,6 +814,22 @@
     </div>
 
     <div class="form-group">
+        <label class="form-label">Your currency</label>
+        <select class="form-input" id="setup-currency">
+            <option value="$">$ USD — US Dollar</option>
+            <option value="£">£ GBP — British Pound</option>
+            <option value="€">€ EUR — Euro</option>
+            <option value="AED ">AED — UAE Dirham</option>
+            <option value="A$">A$ AUD — Australian Dollar</option>
+            <option value="C$">C$ CAD — Canadian Dollar</option>
+            <option value="₹">₹ INR — Indian Rupee</option>
+            <option value="R">R ZAR — South African Rand</option>
+            <option value="CHF ">CHF — Swiss Franc</option>
+            <option value="¥">¥ JPY — Japanese Yen</option>
+        </select>
+    </div>
+
+    <div class="form-group">
         <label class="form-label">How much were you spending on alcohol per week?</label>
         <input type="number" class="form-input" id="setup-weekly-spend" placeholder="e.g., 150">
     </div>
@@ -1083,7 +1099,22 @@
             <div class="section-title">Spending & Drinking Habits (before sobriety)</div>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">This is used to calculate your savings and drinks avoided.</p>
             <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
-                <label style="font-size: 14px; white-space: nowrap; min-width: 120px;">$ per week:</label>
+                <label style="font-size: 14px; white-space: nowrap; min-width: 120px;">Currency:</label>
+                <select class="form-input" id="profile-currency" style="flex:1;">
+                    <option value="$">$ USD</option>
+                    <option value="£">£ GBP</option>
+                    <option value="€">€ EUR</option>
+                    <option value="AED ">AED</option>
+                    <option value="A$">A$ AUD</option>
+                    <option value="C$">C$ CAD</option>
+                    <option value="₹">₹ INR</option>
+                    <option value="R">R ZAR</option>
+                    <option value="CHF ">CHF</option>
+                    <option value="¥">¥ JPY</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+                <label style="font-size: 14px; white-space: nowrap; min-width: 120px;">Spend per week:</label>
                 <input type="number" class="form-input" id="profile-weekly-spend" style="flex:1;">
             </div>
             <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
@@ -1191,6 +1222,7 @@ function completeSetup() {
 
     const ig = document.getElementById('setup-instagram').value.trim().replace(/^@/, '');
     const time = document.getElementById('setup-time').value || '00:00';
+    const currency = document.getElementById('setup-currency').value;
     const weeklySpend = parseFloat(document.getElementById('setup-weekly-spend').value) || 0;
     const weeklyDrinks = parseFloat(document.getElementById('setup-weekly-drinks').value) || 0;
     const weeklyHours = parseFloat(document.getElementById('setup-weekly-hours').value) || 0;
@@ -1199,6 +1231,7 @@ function completeSetup() {
         name: name,
         soberDate: date,
         soberTime: time,
+        currency: currency,
         weeklySpend: weeklySpend,
         weeklyDrinks: weeklyDrinks,
         weeklyHours: weeklyHours,
@@ -1267,9 +1300,9 @@ function initApp() {
     document.getElementById('streak-msg').textContent = streakMsg;
 
     // Money saved (based on user's weekly spend)
-    const dailySpend = (data.weeklySpend || 70) / 7;
-    const moneySaved = Math.round(streakDays * dailySpend);
-    document.getElementById('money-saved').innerHTML = '$' + moneySaved.toLocaleString();
+    const moneySaved = getMoneySaved(data);
+    const curr = getCurrencySymbol(data);
+    document.getElementById('money-saved').innerHTML = curr + moneySaved.toLocaleString();
 
     // Drinks not had
     const dailyDrinks = (data.weeklyDrinks || 14) / 7;
@@ -2063,6 +2096,10 @@ function getStreakDays(data) {
     return Math.max(0, Math.floor((now - streakStart) / (1000 * 60 * 60 * 24)));
 }
 
+function getCurrencySymbol(data) {
+    return data.currency || '$';
+}
+
 function getMoneySaved(data) {
     const dailySpend = (data.weeklySpend || 70) / 7;
     return Math.round(getStreakDays(data) * dailySpend);
@@ -2132,7 +2169,8 @@ function renderVisionBoard() {
     if (!data.visionBoard) data.visionBoard = [];
 
     const saved = getMoneySaved(data);
-    document.getElementById('vision-savings').textContent = '$' + saved.toLocaleString();
+    const vCurr = getCurrencySymbol(data);
+    document.getElementById('vision-savings').innerHTML = vCurr + saved.toLocaleString();
 
     const container = document.getElementById('vision-list');
     if (!data.visionBoard.length) {
@@ -2155,13 +2193,13 @@ function renderVisionBoard() {
                 <div class="vision-info">
                     <button class="vision-delete" onclick="deleteVisionItem(${i})">×</button>
                     <div class="vision-name">${escapeHtml(item.name)}</div>
-                    <div class="vision-cost">$${item.cost.toLocaleString()}</div>
+                    <div class="vision-cost">${vCurr}${item.cost.toLocaleString()}</div>
                     <div class="vision-progress-bar">
                         <div class="vision-progress-fill" style="width:${pct}%; background:${barColor};"></div>
                     </div>
                     <div class="vision-progress-text">
                         <span>${pct}% there</span>
-                        <span>${canAfford ? 'You can afford this!' : '$' + Math.max(0, item.cost - saved).toLocaleString() + ' to go'}</span>
+                        <span>${canAfford ? 'You can afford this!' : vCurr + Math.max(0, item.cost - saved).toLocaleString() + ' to go'}</span>
                     </div>
                 </div>
             </div>`;
@@ -2198,6 +2236,7 @@ function renderProfile() {
     document.getElementById('profile-sober-time').value = data.soberTime || '00:00';
 
     // Populate spending habits
+    document.getElementById('profile-currency').value = data.currency || '$';
     document.getElementById('profile-weekly-spend').value = data.weeklySpend || '';
     document.getElementById('profile-weekly-drinks').value = data.weeklyDrinks || '';
     document.getElementById('profile-weekly-hours').value = data.weeklyHours || '';
@@ -2211,12 +2250,14 @@ function renderProfile() {
     document.getElementById('profile-wins-count').textContent = journalCount + (journalCount === 1 ? ' entry' : ' entries');
 
     const streakDaysProfile = getStreakDays(data);
-    const dailySpendProfile = (data.weeklySpend || 70) / 7;
-    document.getElementById('profile-money').textContent = '$' + Math.round(streakDaysProfile * dailySpendProfile).toLocaleString() + ' saved';
+    const profileMoney = getMoneySaved(data);
+    const curr = getCurrencySymbol(data);
+    document.getElementById('profile-money').innerHTML = curr + profileMoney.toLocaleString() + ' saved';
 }
 
 function saveSpendingHabits() {
     const data = getData();
+    data.currency = document.getElementById('profile-currency').value;
     data.weeklySpend = parseFloat(document.getElementById('profile-weekly-spend').value) || 0;
     data.weeklyDrinks = parseFloat(document.getElementById('profile-weekly-drinks').value) || 0;
     data.weeklyHours = parseFloat(document.getElementById('profile-weekly-hours').value) || 0;
