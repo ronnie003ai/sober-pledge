@@ -17,6 +17,7 @@
             --card: #141b2d;
             --card-hover: #1a2340;
             --accent: #6366f1;
+            --accent-light: #818cf8;
             --accent-glow: rgba(99, 102, 241, 0.3);
             --green: #10b981;
             --green-glow: rgba(16, 185, 129, 0.3);
@@ -26,6 +27,25 @@
             --text-muted: #64748b;
             --border: #1e293b;
             --radius: 16px;
+            --gradient-accent: linear-gradient(135deg, #6366f1, #8b5cf6);
+            --gradient-green: linear-gradient(135deg, #10b981, #34d399);
+            --gradient-warm: linear-gradient(135deg, #f59e0b, #ef4444);
+        }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInScale { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); } 50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.4); } }
+        @keyframes celebratePulse { 0% { transform: scale(1); } 25% { transform: scale(1.15); } 50% { transform: scale(1); } 75% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100px) rotate(720deg); opacity: 0; }
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -41,29 +61,59 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--card);
-            border-top: 1px solid var(--border);
+            background: rgba(20, 27, 45, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(99, 102, 241, 0.1);
             display: flex;
             justify-content: space-around;
-            padding: 8px 0 env(safe-area-inset-bottom, 8px);
+            padding: 6px 0 env(safe-area-inset-bottom, 6px);
             z-index: 100;
         }
         .nav-btn {
             background: none;
             border: none;
             color: var(--text-muted);
-            font-size: 12px;
-            padding: 8px 16px;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 6px 12px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 4px;
-            transition: color 0.2s;
+            transition: all 0.3s ease;
+            position: relative;
         }
-        .nav-btn.active { color: var(--accent); }
+        .nav-btn.active { color: var(--accent-light); }
+        .nav-btn.active::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 3px;
+            background: var(--gradient-accent);
+            border-radius: 0 0 3px 3px;
+        }
         .nav-btn:hover { color: var(--text); }
-        .nav-icon { font-size: 24px; }
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
 
         /* Screens */
         .screen {
@@ -75,7 +125,6 @@
             animation: fadeIn 0.3s ease;
         }
         .screen.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Cards */
         .card {
@@ -86,7 +135,7 @@
             border: 1px solid var(--border);
             transition: transform 0.2s;
         }
-        .card:hover { transform: translateY(-1px); }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
         .section-title {
             font-size: 12px;
             text-transform: uppercase;
@@ -105,7 +154,26 @@
             padding: 40px 20px;
             text-align: center;
         }
-        .onboarding-logo { font-size: 64px; margin-bottom: 16px; }
+        .onboarding-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            background: var(--gradient-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            box-shadow: 0 8px 32px var(--accent-glow);
+        }
+        .onboarding-logo svg {
+            width: 44px;
+            height: 44px;
+            fill: none;
+            stroke: white;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
         .onboarding h1 { font-size: 32px; margin-bottom: 8px; }
         .onboarding p { color: var(--text-muted); margin-bottom: 32px; font-size: 16px; }
         .form-group { width: 100%; max-width: 360px; margin-bottom: 20px; text-align: left; }
@@ -125,17 +193,18 @@
         .form-input:focus { border-color: var(--accent); }
         .btn {
             padding: 14px 32px;
-            background: var(--accent);
+            background: var(--gradient-accent);
             color: white;
             border: none;
             border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
             font-family: inherit;
         }
-        .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px var(--accent-glow); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-glow); }
+        .btn:active { transform: scale(0.97); }
         .btn-full { width: 100%; max-width: 360px; }
         .btn-small { padding: 10px 20px; font-size: 14px; }
         .btn-green { background: var(--green); }
@@ -158,6 +227,7 @@
             border: 1px solid rgba(99, 102, 241, 0.2);
             position: relative;
             overflow: hidden;
+            animation: glow 3s ease-in-out infinite;
         }
         .streak-card::before {
             content: '';
@@ -172,9 +242,20 @@
         .streak-number {
             font-size: 72px;
             font-weight: 800;
-            color: var(--accent);
+            background: linear-gradient(135deg, #6366f1, #a78bfa, #818cf8, #6366f1);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: streakShimmer 4s ease infinite;
             position: relative;
             line-height: 1;
+            filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
+        }
+        @keyframes streakShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
         .streak-label {
             font-size: 18px;
@@ -655,7 +736,26 @@
             border: 1px solid rgba(99, 102, 241, 0.2);
             padding: 32px 24px;
         }
-        .pledge-icon { font-size: 48px; margin-bottom: 12px; }
+        .pledge-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: var(--gradient-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+        .pledge-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: none;
+            stroke: white;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
         .pledge-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
         .pledge-text {
             color: var(--text-muted);
@@ -774,6 +874,241 @@
         }
         .ig-edit-input:focus { border-color: var(--accent); }
 
+        /* Confetti */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 300;
+            overflow: hidden;
+        }
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            animation: confettiDrop 1.5s ease-out forwards;
+        }
+        @keyframes confettiDrop {
+            0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; }
+        }
+        .pledge-card.celebrating {
+            animation: celebratePulse 0.6s ease;
+        }
+        .pledge-success-flash {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 250;
+            animation: flashFade 1s ease-out forwards;
+        }
+        @keyframes flashFade {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Stat cards gradient borders */
+        .stat-card {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        /* Badge styles */
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .badge-item {
+            text-align: center;
+            padding: 16px 8px;
+            background: var(--bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        .badge-item.earned {
+            border-color: rgba(99, 102, 241, 0.3);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.05));
+        }
+        .badge-item.locked { opacity: 0.35; }
+        .badge-icon { font-size: 32px; margin-bottom: 6px; }
+        .badge-name { font-size: 11px; font-weight: 600; }
+        .badge-desc { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+        /* Community feed */
+        .community-compose {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+        .community-textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            resize: none;
+            min-height: 70px;
+            margin-bottom: 10px;
+        }
+        .community-textarea:focus { border-color: var(--accent); }
+        .community-compose-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .community-post {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            animation: fadeIn 0.3s ease;
+        }
+        .community-post-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .community-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .community-post-name { font-weight: 600; font-size: 15px; }
+        .community-post-meta { font-size: 12px; color: var(--text-muted); }
+        .community-post-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+        .community-post-text { font-size: 15px; line-height: 1.6; margin-bottom: 12px; }
+        .community-post-photo {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+        .community-actions {
+            display: flex;
+            gap: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .community-action-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .community-action-btn:hover { background: rgba(99, 102, 241, 0.1); color: var(--text); }
+        .community-action-btn.liked { color: var(--red); }
+        .community-action-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .community-action-btn.liked svg { fill: currentColor; }
+        .community-comments {
+            margin-top: 12px;
+            padding-top: 12px;
+        }
+        .community-comment {
+            display: flex;
+            gap: 10px;
+            padding: 8px 0;
+        }
+        .community-comment-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .community-comment-name { font-weight: 600; font-size: 13px; }
+        .community-comment-text { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+        .community-comment-input {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .community-comment-input input {
+            flex: 1;
+            padding: 8px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+        }
+        .community-comment-input input:focus { border-color: var(--accent); }
+        .community-tab-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .community-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            font-weight: 500;
+        }
+        .community-tab.active {
+            background: var(--gradient-accent);
+            border-color: transparent;
+            color: white;
+        }
+
         /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -784,7 +1119,7 @@
 
 <!-- ONBOARDING -->
 <div class="onboarding" id="onboarding">
-    <div class="onboarding-logo">🌿</div>
+    <div class="onboarding-logo"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4" stroke-width="2.5"/></svg></div>
     <h1>Sober Pledge</h1>
     <p>Your journey to freedom starts here.</p>
 
@@ -882,7 +1217,7 @@
         </div>
 
         <div class="stats-row">
-            <div class="card stat-card" style="padding: 28px 24px;">
+            <div class="card stat-card" style="padding: 28px 24px; cursor:pointer;" onclick="showScreen('vision')">
                 <div style="font-size: 36px; font-weight: 700; color: var(--green);" id="money-saved">$0</div>
                 <div class="stat-label">Money Saved</div>
             </div>
@@ -1071,6 +1406,31 @@
         <div class="vision-grid" id="vision-list"></div>
     </div>
 
+    <!-- Community Screen -->
+    <div class="screen" id="screen-community">
+        <h2 style="margin-bottom: 4px;">Community</h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;">You're not alone. Share your journey and support others.</p>
+
+        <div class="community-tab-bar">
+            <button class="community-tab active" onclick="switchCommunityTab('feed')">Feed</button>
+            <button class="community-tab" onclick="switchCommunityTab('my')">My Posts</button>
+        </div>
+
+        <div class="community-compose">
+            <textarea class="community-textarea" id="community-input" placeholder="Share what's on your mind..."></textarea>
+            <div class="community-compose-actions">
+                <label class="btn btn-small btn-outline" style="cursor:pointer; display:flex; align-items:center; gap:4px;">
+                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    Photo
+                    <input type="file" accept="image/*" id="community-photo-input" style="display:none;">
+                </label>
+                <button class="btn btn-small btn-green" onclick="addCommunityPost()">Share</button>
+            </div>
+        </div>
+
+        <div id="community-feed"></div>
+    </div>
+
     <!-- Profile Screen -->
     <div class="screen" id="screen-profile">
         <h2 style="margin-bottom: 20px;">My Profile</h2>
@@ -1154,6 +1514,11 @@
         </div>
 
         <div class="card" style="margin-top: 16px;">
+            <div class="section-title">Badges</div>
+            <div class="badge-grid" id="badge-grid"></div>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
             <div class="section-title">Share Your Journey</div>
             <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 16px;">Connect your Instagram so others on Sober Pledge can follow your journey and cheer you on.</p>
             <button class="btn btn-outline btn-small" onclick="copyProfileLink()">Copy my profile link</button>
@@ -1163,22 +1528,22 @@
     <!-- Navigation -->
     <nav class="nav">
         <button class="nav-btn active" onclick="showScreen('home')" id="nav-home">
-            <span class="nav-icon">🏠</span> Home
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span> Home
         </button>
         <button class="nav-btn" onclick="showScreen('pledge')" id="nav-pledge">
-            <span class="nav-icon">🤝</span> Pledges
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span> Pledges
         </button>
         <button class="nav-btn" onclick="showScreen('wins')" id="nav-wins">
-            <span class="nav-icon">📓</span> Journal
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="13" y2="11"/></svg></span> Journal
         </button>
-        <button class="nav-btn" onclick="showScreen('vision')" id="nav-vision">
-            <span class="nav-icon">🎯</span> Vision
+        <button class="nav-btn" onclick="showScreen('community')" id="nav-community">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Community
         </button>
         <button class="nav-btn" onclick="showScreen('urge')" id="nav-urge">
-            <span class="nav-icon">🛡️</span> Urge
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Urge
         </button>
         <button class="nav-btn" onclick="showScreen('profile')" id="nav-profile">
-            <span class="nav-icon">👤</span> Profile
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span> Profile
         </button>
     </nav>
 </div>
@@ -1354,6 +1719,8 @@ function initApp() {
     renderJournal();
     renderProfile();
     renderVisionBoard();
+    renderCommunityFeed();
+    renderBadges();
 }
 
 // =========================================
@@ -1421,7 +1788,7 @@ function renderPledgeArea() {
         // Morning: take the pledge
         area.innerHTML = `
             <div class="card pledge-card">
-                <div class="pledge-icon">🤝</div>
+                <div class="pledge-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4" stroke-width="2.5"/></svg></div>
                 <div class="pledge-title">Today's Pledge</div>
                 <div class="pledge-text">I pledge to stay sober today. Just for today, I choose myself.</div>
                 <button class="btn btn-green" onclick="takePledge()">I Take This Pledge</button>
@@ -1523,8 +1890,40 @@ function takePledge() {
     data.pledges = data.pledges.filter(p => p.date !== todayStr);
     data.pledges.push({ date: todayStr, time: timeStr, review: null });
     saveData(data);
+
+    // Fire confetti celebration
+    launchConfetti();
+
+    // Green flash
+    const flash = document.createElement('div');
+    flash.className = 'pledge-success-flash';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 1000);
+
     renderPledgeArea();
     renderPledgeHistory();
+}
+
+function launchConfetti() {
+    const container = document.createElement('div');
+    container.className = 'confetti-container';
+    document.body.appendChild(container);
+
+    const colors = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#a855f7'];
+    for (let i = 0; i < 60; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + '%';
+        piece.style.top = -10 + 'px';
+        piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = Math.random() * 0.5 + 's';
+        piece.style.animationDuration = (1 + Math.random() * 1.5) + 's';
+        piece.style.width = (6 + Math.random() * 8) + 'px';
+        piece.style.height = (6 + Math.random() * 8) + 'px';
+        piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        container.appendChild(piece);
+    }
+    setTimeout(() => container.remove(), 3000);
 }
 
 function submitReview() {
@@ -2073,6 +2472,284 @@ function renderWhyReminder() {
 }
 
 // =========================================
+// COMMUNITY
+// =========================================
+let communityTab = 'feed';
+
+const sampleCommunityPosts = [
+    {
+        id: 'sample-1',
+        name: 'Sarah M.',
+        initial: 'S',
+        color: '#ec4899',
+        days: 127,
+        badge: 'Streak Warrior',
+        badgeColor: 'rgba(236, 72, 153, 0.15)',
+        badgeTextColor: '#ec4899',
+        text: "127 days today. Never thought I'd make it past a week when I started. If you're on day 1, keep going. It gets so much easier. The mornings alone are worth it.",
+        time: '2h ago',
+        likes: 24,
+        liked: false,
+        comments: [
+            { name: 'James K.', initial: 'J', color: '#3b82f6', text: 'Proud of you Sarah! The mornings really are a game changer.' },
+            { name: 'Emma R.', initial: 'E', color: '#10b981', text: "I'm on day 3 and this gives me so much hope" }
+        ]
+    },
+    {
+        id: 'sample-2',
+        name: 'Marcus T.',
+        initial: 'M',
+        color: '#f59e0b',
+        days: 42,
+        badge: 'Rising Star',
+        badgeColor: 'rgba(245, 158, 11, 0.15)',
+        badgeTextColor: '#f59e0b',
+        text: "Went to a pub with mates last night for the first time since quitting. Ordered a sparkling water and actually had a great time. Nobody even cared. All those fears were in my head.",
+        time: '5h ago',
+        likes: 31,
+        liked: false,
+        comments: [
+            { name: 'Sarah M.', initial: 'S', color: '#ec4899', text: "That's a massive win! Social situations get easier every time." }
+        ]
+    },
+    {
+        id: 'sample-3',
+        name: 'Lisa C.',
+        initial: 'L',
+        color: '#8b5cf6',
+        days: 365,
+        badge: 'Legend',
+        badgeColor: 'rgba(139, 92, 246, 0.15)',
+        badgeTextColor: '#8b5cf6',
+        text: "ONE YEAR. 365 days. I literally cannot believe I'm writing this. To my past self who didn't think she could make it one weekend — look at us now. Crying happy tears. Thank you to everyone in this community who kept me going.",
+        time: '8h ago',
+        likes: 89,
+        liked: false,
+        comments: [
+            { name: 'Marcus T.', initial: 'M', color: '#f59e0b', text: 'LEGEND!!! This is so inspiring. One year!!!' },
+            { name: 'Alex P.', initial: 'A', color: '#06b6d4', text: 'You deserve every bit of this. What an achievement.' },
+            { name: 'Rachel W.', initial: 'R', color: '#10b981', text: "I'm at 2 months and posts like this keep me going. Congratulations Lisa!" }
+        ]
+    },
+    {
+        id: 'sample-4',
+        name: 'David R.',
+        initial: 'D',
+        color: '#10b981',
+        days: 14,
+        badge: null,
+        text: "Two weeks in and I've already saved enough to book a weekend away with the kids. They don't know it yet but we're going to the seaside. This is what sobriety looks like.",
+        time: '12h ago',
+        likes: 45,
+        liked: false,
+        comments: [
+            { name: 'Lisa C.', initial: 'L', color: '#8b5cf6', text: "Your kids are so lucky. These moments are everything." }
+        ]
+    },
+    {
+        id: 'sample-5',
+        name: 'Priya K.',
+        initial: 'P',
+        color: '#06b6d4',
+        days: 7,
+        badge: null,
+        text: "One week! My anxiety has dropped so much. I actually slept through the whole night for the first time in months. Small wins matter.",
+        time: '1d ago',
+        likes: 18,
+        liked: false,
+        comments: []
+    }
+];
+
+function getCommunityPosts() {
+    return JSON.parse(localStorage.getItem('soberpledge-community') || '[]');
+}
+
+function saveCommunityPosts(posts) {
+    localStorage.setItem('soberpledge-community', JSON.stringify(posts));
+}
+
+function switchCommunityTab(tab) {
+    communityTab = tab;
+    document.querySelectorAll('.community-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.community-tab[onclick*="${tab}"]`).classList.add('active');
+    renderCommunityFeed();
+}
+
+function addCommunityPost() {
+    const input = document.getElementById('community-input');
+    const photoInput = document.getElementById('community-photo-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const data = getData();
+    const file = photoInput.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            saveCommunityPost(text, e.target.result);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        saveCommunityPost(text, null);
+    }
+    input.value = '';
+    photoInput.value = '';
+}
+
+function saveCommunityPost(text, photo) {
+    const data = getData();
+    const posts = getCommunityPosts();
+    const streakDays = getStreakDays(data);
+    posts.unshift({
+        id: 'user-' + Date.now(),
+        name: data.name,
+        initial: data.name.charAt(0).toUpperCase(),
+        color: '#6366f1',
+        days: streakDays,
+        badge: null,
+        text: text,
+        photo: photo,
+        time: 'Just now',
+        likes: 0,
+        liked: false,
+        comments: [],
+        isUser: true,
+        date: new Date().toISOString()
+    });
+    saveCommunityPosts(posts);
+    renderCommunityFeed();
+}
+
+function toggleLike(postId) {
+    // Check user posts
+    const posts = getCommunityPosts();
+    const userPost = posts.find(p => p.id === postId);
+    if (userPost) {
+        userPost.liked = !userPost.liked;
+        userPost.likes += userPost.liked ? 1 : -1;
+        saveCommunityPosts(posts);
+        renderCommunityFeed();
+        return;
+    }
+    // Check sample posts
+    const sample = sampleCommunityPosts.find(p => p.id === postId);
+    if (sample) {
+        sample.liked = !sample.liked;
+        sample.likes += sample.liked ? 1 : -1;
+        renderCommunityFeed();
+    }
+}
+
+function addComment(postId) {
+    const input = document.getElementById('comment-' + postId);
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+
+    const data = getData();
+    const comment = {
+        name: data.name,
+        initial: data.name.charAt(0).toUpperCase(),
+        color: '#6366f1',
+        text: text
+    };
+
+    // Check user posts
+    const posts = getCommunityPosts();
+    const userPost = posts.find(p => p.id === postId);
+    if (userPost) {
+        userPost.comments.push(comment);
+        saveCommunityPosts(posts);
+        renderCommunityFeed();
+        return;
+    }
+    // Check sample posts
+    const sample = sampleCommunityPosts.find(p => p.id === postId);
+    if (sample) {
+        sample.comments.push(comment);
+        renderCommunityFeed();
+    }
+}
+
+function deleteCommunityPost(postId) {
+    let posts = getCommunityPosts();
+    posts = posts.filter(p => p.id !== postId);
+    saveCommunityPosts(posts);
+    renderCommunityFeed();
+}
+
+function renderCommunityFeed() {
+    const container = document.getElementById('community-feed');
+    if (!container) return;
+
+    const userPosts = getCommunityPosts();
+    let allPosts;
+
+    if (communityTab === 'my') {
+        allPosts = userPosts;
+        if (!allPosts.length) {
+            container.innerHTML = '<div class="empty-state">You haven\'t shared anything yet. Your story could help someone today.</div>';
+            return;
+        }
+    } else {
+        allPosts = [...userPosts, ...sampleCommunityPosts];
+    }
+
+    container.innerHTML = allPosts.map(post => {
+        const badgeHtml = post.badge
+            ? `<span class="community-post-badge" style="background:${post.badgeColor || 'rgba(99,102,241,0.15)'};color:${post.badgeTextColor || 'var(--accent)'}">${post.badge}</span>`
+            : '';
+        const photoHtml = post.photo
+            ? `<img class="community-post-photo" src="${post.photo}">`
+            : '';
+        const deleteHtml = post.isUser
+            ? `<button class="community-action-btn" onclick="deleteCommunityPost('${post.id}')" style="margin-left:auto;"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>`
+            : '';
+        const commentsHtml = post.comments.length ? post.comments.map(c => `
+            <div class="community-comment">
+                <div class="community-comment-avatar" style="background:${c.color}">${c.initial}</div>
+                <div>
+                    <div class="community-comment-name">${escapeHtml(c.name)}</div>
+                    <div class="community-comment-text">${escapeHtml(c.text)}</div>
+                </div>
+            </div>
+        `).join('') : '';
+
+        return `
+            <div class="community-post">
+                <div class="community-post-header">
+                    <div class="community-avatar" style="background:${post.color}">${post.initial}</div>
+                    <div>
+                        <div class="community-post-name">${escapeHtml(post.name)}${badgeHtml}</div>
+                        <div class="community-post-meta">${post.days} days sober · ${post.time}</div>
+                    </div>
+                </div>
+                <div class="community-post-text">${escapeHtml(post.text)}</div>
+                ${photoHtml}
+                <div class="community-actions">
+                    <button class="community-action-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
+                        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        ${post.likes}
+                    </button>
+                    <button class="community-action-btn" onclick="document.getElementById('comment-${post.id}').focus()">
+                        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        ${post.comments.length}
+                    </button>
+                    ${deleteHtml}
+                </div>
+                <div class="community-comments">
+                    ${commentsHtml}
+                    <div class="community-comment-input">
+                        <input type="text" id="comment-${post.id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter')addComment('${post.id}')">
+                        <button class="btn btn-small" style="padding:8px 14px;font-size:12px;" onclick="addComment('${post.id}')">Post</button>
+                    </div>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+// =========================================
 // HELPERS
 // =========================================
 function getStreakDays(data) {
@@ -2204,6 +2881,49 @@ function renderVisionBoard() {
                 </div>
             </div>`;
     }).join('');
+}
+
+// =========================================
+// BADGES
+// =========================================
+function renderBadges() {
+    const data = getData();
+    if (!data) return;
+    const container = document.getElementById('badge-grid');
+    if (!container) return;
+
+    const streakDays = getStreakDays(data);
+    const pledgeCount = (data.pledges || []).length;
+    const journalCount = (data.journal || []).length;
+    const communityPosts = getCommunityPosts().length;
+    const whyReasons = (data.whyReasons || []).length;
+    const visionGoals = (data.visionBoard || []).length;
+
+    const badges = [
+        { icon: '🌱', name: 'First Step', desc: 'Start your journey', earned: streakDays >= 1 },
+        { icon: '⭐', name: 'One Week', desc: '7 days sober', earned: streakDays >= 7 },
+        { icon: '🔥', name: 'On Fire', desc: '14 days sober', earned: streakDays >= 14 },
+        { icon: '🏅', name: 'Monthly', desc: '30 days sober', earned: streakDays >= 30 },
+        { icon: '💎', name: 'Diamond', desc: '60 days sober', earned: streakDays >= 60 },
+        { icon: '🏆', name: 'Champion', desc: '90 days sober', earned: streakDays >= 90 },
+        { icon: '🌟', name: 'Half Year', desc: '180 days sober', earned: streakDays >= 180 },
+        { icon: '👑', name: 'Legend', desc: '365 days sober', earned: streakDays >= 365 },
+        { icon: '🤝', name: 'Committed', desc: '7 pledges taken', earned: pledgeCount >= 7 },
+        { icon: '📝', name: 'Storyteller', desc: '5 journal entries', earned: journalCount >= 5 },
+        { icon: '💬', name: 'Contributor', desc: '1 community post', earned: communityPosts >= 1 },
+        { icon: '🗣️', name: 'Top Poster', desc: '10 community posts', earned: communityPosts >= 10 },
+        { icon: '💛', name: 'Purposeful', desc: '3 reasons to quit', earned: whyReasons >= 3 },
+        { icon: '🎯', name: 'Dreamer', desc: 'Set a vision goal', earned: visionGoals >= 1 },
+        { icon: '🛡️', name: 'Fighter', desc: 'Use the urge tools', earned: streakDays >= 1 },
+    ];
+
+    container.innerHTML = badges.map(b => `
+        <div class="badge-item ${b.earned ? 'earned' : 'locked'}">
+            <div class="badge-icon">${b.icon}</div>
+            <div class="badge-name">${b.name}</div>
+            <div class="badge-desc">${b.desc}</div>
+        </div>
+    `).join('');
 }
 
 // =========================================
