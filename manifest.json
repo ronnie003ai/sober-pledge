@@ -2,7 +2,7 @@
   "name": "Sober Pledge",
   "short_name": "Sober Pledge",
   "description": "Your daily commitment to sobriety. Track your journey, fight urges, and celebrate wins.",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0f1a",
   "theme_color": "#0a0f1a",
