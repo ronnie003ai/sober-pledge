@@ -1,0 +1,2256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sober Pledge">
+    <meta name="theme-color" content="#0a0f1a">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>Sober Pledge — Your Daily Commitment</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0a0f1a;
+            --card: #141b2d;
+            --card-hover: #1a2340;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --green: #10b981;
+            --green-glow: rgba(16, 185, 129, 0.3);
+            --orange: #f59e0b;
+            --red: #ef4444;
+            --text: #e2e8f0;
+            --text-muted: #64748b;
+            --border: #1e293b;
+            --radius: 16px;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 env(safe-area-inset-bottom, 8px);
+            z-index: 100;
+        }
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 12px;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s;
+        }
+        .nav-btn.active { color: var(--accent); }
+        .nav-btn:hover { color: var(--text); }
+        .nav-icon { font-size: 24px; }
+
+        /* Screens */
+        .screen {
+            display: none;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 24px 20px 100px;
+            min-height: 100vh;
+            animation: fadeIn 0.3s ease;
+        }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-1px); }
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        /* Onboarding */
+        .onboarding {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .onboarding-logo { font-size: 64px; margin-bottom: 16px; }
+        .onboarding h1 { font-size: 32px; margin-bottom: 8px; }
+        .onboarding p { color: var(--text-muted); margin-bottom: 32px; font-size: 16px; }
+        .form-group { width: 100%; max-width: 360px; margin-bottom: 20px; text-align: left; }
+        .form-label { font-size: 14px; color: var(--text-muted); margin-bottom: 6px; display: block; }
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 16px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: var(--accent); }
+        .btn {
+            padding: 14px 32px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px var(--accent-glow); }
+        .btn-full { width: 100%; max-width: 360px; }
+        .btn-small { padding: 10px 20px; font-size: 14px; }
+        .btn-green { background: var(--green); }
+        .btn-green:hover { box-shadow: 0 8px 24px var(--green-glow); }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        .btn-outline:hover { border-color: var(--accent); box-shadow: none; }
+        .btn-danger { background: var(--red); }
+
+        /* Dashboard */
+        .greeting { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+        .greeting-sub { color: var(--text-muted); font-size: 16px; margin-bottom: 24px; }
+
+        .streak-card {
+            text-align: center;
+            background: linear-gradient(135deg, #1a1f3d, #141b2d);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .streak-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            opacity: 0.3;
+        }
+        .streak-number {
+            font-size: 72px;
+            font-weight: 800;
+            color: var(--accent);
+            position: relative;
+            line-height: 1;
+        }
+        .streak-label {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            position: relative;
+        }
+        .streak-message {
+            margin-top: 16px;
+            font-size: 15px;
+            color: var(--text);
+            position: relative;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card { text-align: center; }
+        .stat-number { font-size: 28px; font-weight: 700; color: var(--green); }
+        .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+        /* Mood Check-in */
+        .mood-grid {
+            display: flex;
+            justify-content: space-around;
+            margin: 16px 0;
+        }
+        .mood-btn {
+            background: none;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            cursor: pointer;
+            font-size: 32px;
+            transition: all 0.2s;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mood-btn:hover, .mood-btn.selected {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+            transform: scale(1.1);
+        }
+        .mood-label { text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+
+        /* Countdown */
+        .countdown-number { font-size: 42px; font-weight: 700; color: var(--orange); }
+        .countdown-label { color: var(--text-muted); margin-top: 4px; }
+        .countdown-event { margin-top: 8px; font-size: 16px; }
+
+        /* Milestones */
+        .milestone {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .milestone:last-child { border-bottom: none; }
+        .milestone-icon {
+            font-size: 28px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+        .milestone-locked { opacity: 0.3; }
+        .milestone-name { font-weight: 600; }
+        .milestone-desc { font-size: 13px; color: var(--text-muted); }
+
+        /* Wins */
+        /* Journal */
+        .journal-compose { margin-bottom: 16px; }
+        .journal-textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 10px;
+        }
+        .journal-textarea:focus { border-color: var(--accent); }
+        .journal-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .journal-tag-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .journal-tag-btn:hover, .journal-tag-btn.selected {
+            border-color: var(--accent);
+            color: var(--text);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .journal-entry {
+            background: var(--bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .journal-entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .journal-entry-tag {
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .journal-tag-win { background: rgba(16, 185, 129, 0.15); color: var(--green); }
+        .journal-tag-reflection { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+        .journal-tag-gratitude { background: rgba(245, 158, 11, 0.15); color: var(--orange); }
+        .journal-tag-milestone { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+        .journal-entry-date { font-size: 12px; color: var(--text-muted); }
+        .journal-entry-text { font-size: 15px; line-height: 1.6; margin-bottom: 8px; }
+        .journal-entry-photo {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+        .journal-entry-delete {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        .journal-entry-delete:hover { opacity: 1; color: var(--red); }
+        .empty-state { text-align: center; color: var(--text-muted); padding: 32px 0; font-size: 15px; }
+
+        /* Chat */
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 16px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .chat-msg {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .chat-msg.bot {
+            background: var(--card);
+            border: 1px solid var(--border);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .chat-msg.user {
+            background: var(--accent);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            color: var(--text);
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+        }
+        .chat-input:focus { border-color: var(--accent); }
+        .chat-send {
+            background: var(--accent);
+            border: none;
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        .chat-send:hover { transform: scale(1.05); }
+
+        /* Urge Fighter */
+        .urge-intro { text-align: center; padding: 20px 0; }
+        .urge-intro p { color: var(--text-muted); margin: 12px 0 24px; line-height: 1.6; }
+        .urge-icon { font-size: 64px; }
+        .tetris-container { text-align: center; }
+        .tetris-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .tetris-score { font-size: 14px; color: var(--text-muted); }
+        .tetris-score span { color: var(--accent); font-weight: 700; font-size: 18px; }
+        #tetris-canvas {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+        }
+        .tetris-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-width: 240px;
+            margin: 16px auto 0;
+        }
+        .tetris-ctrl-btn {
+            padding: 14px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .tetris-ctrl-btn:hover { background: var(--card-hover); }
+        .tetris-ctrl-btn:active { background: var(--accent); }
+
+        /* Log drink modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 32px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        .modal h2 { margin-bottom: 8px; }
+        .modal p { color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+        .modal-btns { display: flex; gap: 12px; }
+        .modal-btns .btn { flex: 1; }
+
+        /* Daily check-in banner */
+        .checkin-banner {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(99, 102, 241, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .checkin-text { font-weight: 600; }
+        .checkin-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+        .checkin-actions { display: flex; gap: 8px; }
+
+        /* Vision Board */
+        .vision-add-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .vision-add-row {
+            display: flex;
+            gap: 8px;
+        }
+        .vision-input {
+            flex: 1;
+            padding: 12px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+        }
+        .vision-input:focus { border-color: var(--accent); }
+        .vision-input-small { width: 120px; flex: none; }
+        .vision-item {
+            background: var(--bg);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 14px;
+            border: 1px solid var(--border);
+        }
+        .vision-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+        .vision-img-placeholder {
+            width: 100%;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--card);
+            color: var(--text-muted);
+            font-size: 40px;
+        }
+        .vision-info { padding: 16px; }
+        .vision-name { font-weight: 600; font-size: 16px; }
+        .vision-cost { color: var(--green); font-weight: 700; margin-top: 4px; }
+        .vision-progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .vision-progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .vision-progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+        .vision-delete {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            float: right;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        .vision-delete:hover { opacity: 1; color: var(--red); }
+        .vision-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        @media (max-width: 500px) { .vision-grid { grid-template-columns: 1fr; } }
+        .savings-summary {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(99, 102, 241, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+        }
+        .savings-total { font-size: 36px; font-weight: 800; color: var(--green); }
+        .savings-label { color: var(--text-muted); margin-top: 4px; font-size: 14px; }
+
+        /* Why I Quit */
+        .why-reminder {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.05));
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .why-reminder-photo {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .why-reminder-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: rgba(245, 158, 11, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+        .why-reminder-label { font-size: 12px; color: var(--orange); text-transform: uppercase; letter-spacing: 1px; }
+        .why-reminder-text { font-size: 16px; font-weight: 600; margin-top: 4px; }
+        .why-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .why-item:last-child { border-bottom: none; }
+        .why-item-photo {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .why-item-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: rgba(245, 158, 11, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .why-item-text { flex: 1; font-size: 15px; }
+        .why-item-delete {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        .why-item-delete:hover { opacity: 1; color: var(--red); }
+        .why-add-area {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        /* Daily Pledge */
+        .pledge-card {
+            text-align: center;
+            background: linear-gradient(135deg, #1a1f3d, #141b2d);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 32px 24px;
+        }
+        .pledge-icon { font-size: 48px; margin-bottom: 12px; }
+        .pledge-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        .pledge-text {
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .pledge-done {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+        .pledge-done-text { color: var(--green); font-weight: 600; font-size: 16px; }
+        .pledge-done-time { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+        .pledge-streak-row {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 16px;
+        }
+        .pledge-streak-item { text-align: center; }
+        .pledge-streak-num { font-size: 24px; font-weight: 700; color: var(--accent); }
+        .pledge-streak-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+        /* Review */
+        .review-section { margin-top: 20px; }
+        .review-textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            resize: vertical;
+            min-height: 80px;
+            margin-top: 8px;
+        }
+        .review-textarea:focus { border-color: var(--accent); }
+        .review-rating {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .review-rating-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            background: none;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .review-rating-btn:hover,
+        .review-rating-btn.selected {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+            transform: scale(1.1);
+        }
+        .pledge-history-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .pledge-history-item:last-child { border-bottom: none; }
+        .pledge-history-date { font-weight: 600; font-size: 14px; min-width: 80px; }
+        .pledge-history-rating { font-size: 20px; flex-shrink: 0; }
+        .pledge-history-note { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+
+        /* Profile / Instagram */
+        .profile-card {
+            text-align: center;
+        }
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 12px;
+        }
+        .profile-name { font-size: 22px; font-weight: 700; }
+        .profile-handle { color: var(--text-muted); margin-top: 4px; }
+        .profile-handle a { color: var(--accent); text-decoration: none; }
+        .profile-handle a:hover { text-decoration: underline; }
+        .btn-instagram {
+            background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+            margin-top: 16px;
+        }
+        .btn-instagram:hover { box-shadow: 0 8px 24px rgba(131, 58, 180, 0.3); }
+        .ig-edit-area { margin-top: 16px; display: flex; gap: 8px; justify-content: center; }
+        .ig-edit-input {
+            padding: 10px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            width: 200px;
+        }
+        .ig-edit-input:focus { border-color: var(--accent); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<!-- ONBOARDING -->
+<div class="onboarding" id="onboarding">
+    <div class="onboarding-logo">🌿</div>
+    <h1>Sober Pledge</h1>
+    <p>Your journey to freedom starts here.</p>
+
+    <div class="form-group">
+        <label class="form-label">What's your first name?</label>
+        <input type="text" class="form-input" id="setup-name" placeholder="Your first name">
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">When did your sober journey begin?</label>
+        <input type="date" class="form-input" id="setup-date">
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">What time? (optional)</label>
+        <input type="time" class="form-input" id="setup-time">
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">What are you looking forward to?</label>
+        <input type="text" class="form-input" id="setup-event" placeholder="e.g., Summer holiday">
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">When is it?</label>
+        <input type="date" class="form-input" id="setup-event-date">
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">How much were you spending on alcohol per week?</label>
+        <input type="number" class="form-input" id="setup-weekly-spend" placeholder="e.g., 150">
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">How many drinks were you having per week?</label>
+        <input type="number" class="form-input" id="setup-weekly-drinks" placeholder="e.g., 20">
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Hours per week spent drinking & recovering?</label>
+        <input type="number" class="form-input" id="setup-weekly-hours" placeholder="e.g., 15">
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Instagram handle (optional)</label>
+        <input type="text" class="form-input" id="setup-instagram" placeholder="@yourhandle">
+    </div>
+
+    <button class="btn btn-full" onclick="completeSetup()">Begin My Journey</button>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none;">
+
+    <!-- Dashboard Screen -->
+    <div class="screen active" id="screen-home">
+        <div class="greeting" id="greeting"></div>
+        <div class="greeting-sub" id="greeting-sub"></div>
+
+        <div id="why-reminder-area"></div>
+
+        <div id="pledge-area"></div>
+
+        <div class="card streak-card">
+            <div class="streak-number" id="streak-days">0</div>
+            <div class="streak-label">days sober</div>
+            <div class="streak-message" id="streak-msg"></div>
+        </div>
+
+        <div class="stats-row">
+            <div class="card stat-card" style="padding: 28px 24px;">
+                <div style="font-size: 36px; font-weight: 700; color: var(--orange);" id="countdown-days">0</div>
+                <div class="stat-label"><span id="countdown-event"></span></div>
+            </div>
+            <div class="card stat-card" style="padding: 28px 24px;">
+                <div style="font-size: 36px; font-weight: 700; color: var(--orange);" id="time-saved">0h</div>
+                <div class="stat-label">Time Reclaimed</div>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="card stat-card" style="padding: 28px 24px;">
+                <div style="font-size: 36px; font-weight: 700; color: var(--green);" id="money-saved">$0</div>
+                <div class="stat-label">Money Saved</div>
+            </div>
+            <div class="card stat-card" style="padding: 28px 24px;">
+                <div style="font-size: 36px; font-weight: 700; color: var(--accent);" id="drinks-avoided">0</div>
+                <div class="stat-label">Drinks Avoided</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">How are you feeling?</div>
+            <div class="mood-grid">
+                <div>
+                    <button class="mood-btn" onclick="logMood('great')" data-mood="great">😊</button>
+                    <div class="mood-label">Great</div>
+                </div>
+                <div>
+                    <button class="mood-btn" onclick="logMood('good')" data-mood="good">🙂</button>
+                    <div class="mood-label">Good</div>
+                </div>
+                <div>
+                    <button class="mood-btn" onclick="logMood('okay')" data-mood="okay">😐</button>
+                    <div class="mood-label">Okay</div>
+                </div>
+                <div>
+                    <button class="mood-btn" onclick="logMood('tough')" data-mood="tough">😟</button>
+                    <div class="mood-label">Tough</div>
+                </div>
+                <div>
+                    <button class="mood-btn" onclick="logMood('struggling')" data-mood="struggling">😣</button>
+                    <div class="mood-label">Hard</div>
+                </div>
+            </div>
+            <div id="mood-response" style="text-align:center; color: var(--text-muted); font-size: 14px; margin-top: 8px;"></div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">Milestones</div>
+            <div id="milestones"></div>
+        </div>
+    </div>
+
+    <!-- Why I Quit Screen -->
+    <div class="screen" id="screen-why">
+        <h2 style="margin-bottom: 4px;">Why I Quit</h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;">Your reasons for choosing sobriety. One shows on your home screen each day as a reminder.</p>
+
+        <div class="card">
+            <div class="section-title">Add a Reason</div>
+            <div class="why-add-area">
+                <input type="text" class="vision-input" id="why-input" placeholder="e.g., For my family, For my health...">
+                <label class="btn btn-small btn-outline" style="cursor:pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
+                    📷
+                    <input type="file" accept="image/*" id="why-photo-input" style="display:none;">
+                </label>
+                <button class="btn btn-small btn-green" onclick="addWhyReason()">Add</button>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
+            <div class="section-title">My Reasons</div>
+            <div id="why-list"></div>
+        </div>
+    </div>
+
+    <!-- Pledge Screen (history) -->
+    <div class="screen" id="screen-pledge">
+        <h2 style="margin-bottom: 4px;">My Pledges</h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;">Your daily commitment history.</p>
+
+        <div class="stats-row">
+            <div class="card stat-card">
+                <div class="stat-number" style="color: var(--accent);" id="pledge-total">0</div>
+                <div class="stat-label">Total Pledges</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-number" style="color: var(--orange);" id="pledge-streak-count">0</div>
+                <div class="stat-label">Day Streak</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">Pledge History</div>
+            <div id="pledge-history-list"></div>
+        </div>
+    </div>
+
+    <!-- Journal Screen -->
+    <div class="screen" id="screen-wins">
+        <h2 style="margin-bottom: 4px;">Journal</h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;">Document your recovery journey. Share wins, reflections, and gratitude.</p>
+
+        <div class="card journal-compose">
+            <textarea class="journal-textarea" id="journal-input" placeholder="What's on your mind today?"></textarea>
+            <div class="journal-actions">
+                <button class="journal-tag-btn selected" data-tag="win" onclick="selectJournalTag('win')">Win</button>
+                <button class="journal-tag-btn" data-tag="reflection" onclick="selectJournalTag('reflection')">Reflection</button>
+                <button class="journal-tag-btn" data-tag="gratitude" onclick="selectJournalTag('gratitude')">Gratitude</button>
+                <button class="journal-tag-btn" data-tag="milestone" onclick="selectJournalTag('milestone')">Milestone</button>
+                <label class="btn btn-small btn-outline" style="cursor:pointer; display:flex; align-items:center; gap:4px; margin-left:auto;">
+                    📷 Photo
+                    <input type="file" accept="image/*" id="journal-photo-input" style="display:none;">
+                </label>
+                <button class="btn btn-small btn-green" onclick="addJournalEntry()">Post</button>
+            </div>
+        </div>
+
+        <div id="journal-list"></div>
+    </div>
+
+    <!-- Urge Fighter Screen -->
+    <div class="screen" id="screen-urge">
+        <div id="urge-intro" class="urge-intro">
+            <div class="urge-icon">🛡️</div>
+            <h2>Urge Fighter</h2>
+            <p>Feeling tempted? That's okay — it's completely normal. Read your reasons below, then play a game or talk to someone.</p>
+
+            <!-- Why I Quit embedded here -->
+            <div id="urge-why-reasons" style="text-align:left; margin: 16px 0;"></div>
+
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                <button class="btn" onclick="startTetris()">Play Tetris</button>
+                <button class="btn btn-outline" onclick="showScreen('chat')">Talk to Someone</button>
+            </div>
+            <div style="margin-top: 16px;">
+                <button class="btn btn-outline btn-small" onclick="showScreen('why')">Edit My Reasons</button>
+            </div>
+        </div>
+        <div id="tetris-game" class="tetris-container" style="display:none;">
+            <div class="tetris-header">
+                <button class="btn btn-outline btn-small" onclick="stopTetris()">Back</button>
+                <div class="tetris-score">Score: <span id="tetris-score">0</span></div>
+            </div>
+            <canvas id="tetris-canvas" width="240" height="400"></canvas>
+            <div class="tetris-controls">
+                <button class="tetris-ctrl-btn" onclick="tetrisMove('left')">←</button>
+                <button class="tetris-ctrl-btn" onclick="tetrisMove('rotate')">↻</button>
+                <button class="tetris-ctrl-btn" onclick="tetrisMove('right')">→</button>
+                <div></div>
+                <button class="tetris-ctrl-btn" onclick="tetrisMove('down')">↓</button>
+                <div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Screen -->
+    <div class="screen" id="screen-chat">
+        <h2 style="margin-bottom: 4px;">Support Chat</h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;">A safe space to talk through what you're feeling.</p>
+        <div class="card" style="padding: 0 16px;">
+            <div class="chat-messages" id="chat-messages">
+                <div class="chat-msg bot">Hey there! I'm here for you. How are you feeling right now? You can tell me anything — no judgement here. 💚</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chat-input" placeholder="Type how you're feeling..." onkeydown="if(event.key==='Enter')sendChat()">
+                <button class="chat-send" onclick="sendChat()">→</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vision Board Screen -->
+    <div class="screen" id="screen-vision">
+        <h2 style="margin-bottom: 4px;">Vision Board</h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;">What are you saving towards? Watch your sobriety savings bring your goals closer.</p>
+
+        <div class="savings-summary">
+            <div class="savings-total" id="vision-savings">$0</div>
+            <div class="savings-label">Total saved by not drinking</div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">Add a Goal</div>
+            <div class="vision-add-area">
+                <input type="text" class="vision-input" id="vision-name-input" placeholder="What do you want? (e.g., New Watch)">
+                <div class="vision-add-row">
+                    <input type="number" class="vision-input vision-input-small" id="vision-cost-input" placeholder="Cost ($)">
+                    <label class="btn btn-small btn-outline" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+                        📷 Photo
+                        <input type="file" accept="image/*" id="vision-photo-input" style="display:none;">
+                    </label>
+                    <button class="btn btn-small btn-green" onclick="addVisionItem()">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="vision-grid" id="vision-list"></div>
+    </div>
+
+    <!-- Profile Screen -->
+    <div class="screen" id="screen-profile">
+        <h2 style="margin-bottom: 20px;">My Profile</h2>
+        <div class="card profile-card">
+            <div class="profile-avatar" id="profile-avatar"></div>
+            <div class="profile-name" id="profile-name"></div>
+            <div class="profile-handle" id="profile-handle"></div>
+            <div id="profile-ig-btn"></div>
+            <div class="ig-edit-area">
+                <input type="text" class="ig-edit-input" id="ig-edit-input" placeholder="@yourhandle">
+                <button class="btn btn-small" onclick="saveInstagram()">Save</button>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
+            <div class="section-title">Sobriety Start Date & Time</div>
+            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Adjust when your sober journey began.</p>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="date" class="form-input" id="profile-sober-date" style="flex:1;">
+                <input type="time" class="form-input" id="profile-sober-time" style="flex:1;">
+                <button class="btn btn-small" onclick="saveSoberDate()">Save</button>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
+            <div class="section-title">Spending & Drinking Habits (before sobriety)</div>
+            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">This is used to calculate your savings and drinks avoided.</p>
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+                <label style="font-size: 14px; white-space: nowrap; min-width: 120px;">$ per week:</label>
+                <input type="number" class="form-input" id="profile-weekly-spend" style="flex:1;">
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+                <label style="font-size: 14px; white-space: nowrap; min-width: 120px;">Drinks per week:</label>
+                <input type="number" class="form-input" id="profile-weekly-drinks" style="flex:1;">
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+                <label style="font-size: 14px; white-space: nowrap; min-width: 120px;">Hours per week:</label>
+                <input type="number" class="form-input" id="profile-weekly-hours" style="flex:1;">
+            </div>
+            <button class="btn btn-small" onclick="saveSpendingHabits()">Save</button>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
+            <div class="section-title">Your Journey Stats</div>
+            <div class="milestone">
+                <div class="milestone-icon">📅</div>
+                <div>
+                    <div class="milestone-name">Sober since</div>
+                    <div class="milestone-desc" id="profile-sober-since"></div>
+                </div>
+            </div>
+            <div class="milestone">
+                <div class="milestone-icon">🏆</div>
+                <div>
+                    <div class="milestone-name">Journal entries</div>
+                    <div class="milestone-desc" id="profile-wins-count"></div>
+                </div>
+            </div>
+            <div class="milestone">
+                <div class="milestone-icon">💰</div>
+                <div>
+                    <div class="milestone-name">Money saved</div>
+                    <div class="milestone-desc" id="profile-money"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
+            <div class="section-title">Share Your Journey</div>
+            <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 16px;">Connect your Instagram so others on Sober Pledge can follow your journey and cheer you on.</p>
+            <button class="btn btn-outline btn-small" onclick="copyProfileLink()">Copy my profile link</button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <button class="nav-btn active" onclick="showScreen('home')" id="nav-home">
+            <span class="nav-icon">🏠</span> Home
+        </button>
+        <button class="nav-btn" onclick="showScreen('pledge')" id="nav-pledge">
+            <span class="nav-icon">🤝</span> Pledges
+        </button>
+        <button class="nav-btn" onclick="showScreen('wins')" id="nav-wins">
+            <span class="nav-icon">📓</span> Journal
+        </button>
+        <button class="nav-btn" onclick="showScreen('vision')" id="nav-vision">
+            <span class="nav-icon">🎯</span> Vision
+        </button>
+        <button class="nav-btn" onclick="showScreen('urge')" id="nav-urge">
+            <span class="nav-icon">🛡️</span> Urge
+        </button>
+        <button class="nav-btn" onclick="showScreen('profile')" id="nav-profile">
+            <span class="nav-icon">👤</span> Profile
+        </button>
+    </nav>
+</div>
+
+<!-- Log Drink Modal -->
+<div class="modal-overlay" id="drink-modal">
+    <div class="modal">
+        <h2>Log a Drink</h2>
+        <p>It's okay — progress isn't always a straight line. Logging this takes courage. Would you like to record this and reset your counter?</p>
+        <div class="modal-btns">
+            <button class="btn btn-outline" onclick="closeDrinkModal()">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmDrink()">Yes, Log It</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// =========================================
+// DATA & STATE
+// =========================================
+function getData() {
+    return JSON.parse(localStorage.getItem('soberpledge-data') || 'null');
+}
+function saveData(data) {
+    localStorage.setItem('soberpledge-data', JSON.stringify(data));
+}
+
+// =========================================
+// ONBOARDING
+// =========================================
+function completeSetup() {
+    const name = document.getElementById('setup-name').value.trim();
+    const date = document.getElementById('setup-date').value;
+    const event = document.getElementById('setup-event').value.trim();
+    const eventDate = document.getElementById('setup-event-date').value;
+
+    if (!name || !date) {
+        alert('Please enter your name and sobriety start date.');
+        return;
+    }
+
+    const ig = document.getElementById('setup-instagram').value.trim().replace(/^@/, '');
+    const time = document.getElementById('setup-time').value || '00:00';
+    const weeklySpend = parseFloat(document.getElementById('setup-weekly-spend').value) || 0;
+    const weeklyDrinks = parseFloat(document.getElementById('setup-weekly-drinks').value) || 0;
+    const weeklyHours = parseFloat(document.getElementById('setup-weekly-hours').value) || 0;
+
+    const data = {
+        name: name,
+        soberDate: date,
+        soberTime: time,
+        weeklySpend: weeklySpend,
+        weeklyDrinks: weeklyDrinks,
+        weeklyHours: weeklyHours,
+        countdownEvent: event || 'Something great',
+        countdownDate: eventDate || null,
+        instagram: ig || '',
+        moods: [],
+        wins: [],
+        drinks: [],
+        pledges: [],
+        whyReasons: [],
+        visionBoard: []
+    };
+    saveData(data);
+    initApp();
+}
+
+// =========================================
+// APP INIT
+// =========================================
+function initApp() {
+    const data = getData();
+    if (!data) {
+        document.getElementById('onboarding').style.display = 'flex';
+        document.getElementById('app').style.display = 'none';
+        return;
+    }
+    document.getElementById('onboarding').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+    // Greeting
+    const hour = new Date().getHours();
+    let greeting = 'Good evening';
+    if (hour < 12) greeting = 'Good morning';
+    else if (hour < 17) greeting = 'Good afternoon';
+    document.getElementById('greeting').textContent = greeting + ', ' + data.name + '.';
+    document.getElementById('greeting-sub').textContent = 'How are you feeling today?';
+
+    // Streak — direct inline calculation
+    const _parts = (data.soberDate || '').split('-');
+    const _soberStart = new Date(parseInt(_parts[0]), parseInt(_parts[1]) - 1, parseInt(_parts[2]), 0, 0);
+    const _now = new Date();
+    const _diffMs = _now.getTime() - _soberStart.getTime();
+    const _rawDays = Math.floor(_diffMs / 86400000);
+    let streakDays = Math.max(0, _rawDays);
+
+    document.getElementById('streak-days').innerHTML = String(streakDays);
+
+    // Streak message
+    const messages = [
+        [0, "Today is day one. Every journey starts here. 💪"],
+        [1, "One day down. You've already started winning."],
+        [3, "Three days strong. Your body is already thanking you."],
+        [7, "A whole week! That's a real milestone."],
+        [14, "Two weeks of choosing yourself. Incredible."],
+        [30, "One month. You're proving what you're made of."],
+        [60, "Two months. This is becoming who you are."],
+        [90, "90 days. You're an inspiration."],
+        [180, "Half a year. Look how far you've come."],
+        [365, "One year. Unstoppable. 🌟"]
+    ];
+    let streakMsg = messages[0][1];
+    for (const [days, msg] of messages) {
+        if (streakDays >= days) streakMsg = msg;
+    }
+    document.getElementById('streak-msg').textContent = streakMsg;
+
+    // Money saved (based on user's weekly spend)
+    const dailySpend = (data.weeklySpend || 70) / 7;
+    const moneySaved = Math.round(streakDays * dailySpend);
+    document.getElementById('money-saved').innerHTML = '$' + moneySaved.toLocaleString();
+
+    // Drinks not had
+    const dailyDrinks = (data.weeklyDrinks || 14) / 7;
+    const drinksAvoided = Math.round(streakDays * dailyDrinks);
+    document.getElementById('drinks-avoided').innerHTML = drinksAvoided.toLocaleString();
+
+    // Time saved
+    const dailyHours = (data.weeklyHours || 10) / 7;
+    const totalHoursSaved = Math.round(streakDays * dailyHours);
+    const timeSavedEl = document.getElementById('time-saved');
+    if (totalHoursSaved >= 24) {
+        const days = Math.floor(totalHoursSaved / 24);
+        const hours = totalHoursSaved % 24;
+        timeSavedEl.innerHTML = days + 'd ' + hours + 'h';
+    } else {
+        timeSavedEl.innerHTML = totalHoursSaved + 'h';
+    }
+
+    // Countdown
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    if (data.countdownDate) {
+        const target = new Date(data.countdownDate);
+        const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+        document.getElementById('countdown-days').textContent = Math.max(0, diff);
+    } else {
+        document.getElementById('countdown-days').textContent = '—';
+    }
+    document.getElementById('countdown-event').textContent = 'days to ' + data.countdownEvent;
+
+    // Why I Quit
+    renderWhyReminder();
+    renderWhyReasons();
+    renderUrgeWhyReasons();
+
+    // Daily Pledge
+    renderPledgeArea();
+    renderPledgeHistory();
+
+    // Today's mood
+    const todayStr = today.toISOString().split('T')[0];
+    const todayMood = data.moods.find(m => m.date === todayStr);
+    if (todayMood) {
+        document.querySelector(`.mood-btn[data-mood="${todayMood.mood}"]`)?.classList.add('selected');
+    }
+
+    // Milestones
+    renderMilestones(streakDays);
+    renderJournal();
+    renderProfile();
+    renderVisionBoard();
+}
+
+// =========================================
+// SCREENS
+// =========================================
+function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    document.getElementById('nav-' + name)?.classList.add('active');
+}
+
+// =========================================
+// CHECK-IN & DRINK LOGGING
+// =========================================
+function openDrinkModal() {
+    document.getElementById('drink-modal').classList.add('active');
+}
+function closeDrinkModal() {
+    document.getElementById('drink-modal').classList.remove('active');
+}
+function confirmDrink() {
+    const data = getData();
+    const today = new Date().toISOString().split('T')[0];
+    data.drinks.push(today);
+    saveData(data);
+    closeDrinkModal();
+    initApp();
+}
+
+// =========================================
+// DAILY PLEDGE
+// =========================================
+function getPledgeStreak(data) {
+    if (!data.pledges || !data.pledges.length) return 0;
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    for (let i = 0; i <= 365; i++) {
+        const checkDate = new Date(today);
+        checkDate.setDate(checkDate.getDate() - i);
+        const dateStr = checkDate.toISOString().split('T')[0];
+        const found = data.pledges.find(p => p.date === dateStr);
+        if (found) {
+            streak++;
+        } else {
+            break;
+        }
+    }
+    return streak;
+}
+
+function renderPledgeArea() {
+    const data = getData();
+    if (!data) return;
+    if (!data.pledges) data.pledges = [];
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const hour = new Date().getHours();
+    const todayPledge = data.pledges.find(p => p.date === todayStr);
+    const pledgeStreak = getPledgeStreak(data);
+    const area = document.getElementById('pledge-area');
+
+    if (!todayPledge) {
+        // Morning: take the pledge
+        area.innerHTML = `
+            <div class="card pledge-card">
+                <div class="pledge-icon">🤝</div>
+                <div class="pledge-title">Today's Pledge</div>
+                <div class="pledge-text">I pledge to stay sober today. Just for today, I choose myself.</div>
+                <button class="btn btn-green" onclick="takePledge()">I Take This Pledge</button>
+                <div class="pledge-streak-row">
+                    <div class="pledge-streak-item">
+                        <div class="pledge-streak-num">${pledgeStreak}</div>
+                        <div class="pledge-streak-label">day streak</div>
+                    </div>
+                    <div class="pledge-streak-item">
+                        <div class="pledge-streak-num">${data.pledges.length}</div>
+                        <div class="pledge-streak-label">total pledges</div>
+                    </div>
+                </div>
+            </div>`;
+    } else if (hour >= 18 && !todayPledge.review) {
+        // Evening: end-of-day review
+        area.innerHTML = `
+            <div class="card pledge-card">
+                <div class="pledge-done">
+                    <div class="pledge-done-text">Pledge taken today ✓</div>
+                    <div class="pledge-done-time">at ${todayPledge.time}</div>
+                </div>
+                <div class="review-section">
+                    <div class="pledge-title" style="margin-top:16px;">End of Day Review</div>
+                    <div class="pledge-text">How was today? Rate your day and add any notes.</div>
+                    <div class="review-rating" id="review-rating">
+                        <button class="review-rating-btn" onclick="selectRating(1)">1</button>
+                        <button class="review-rating-btn" onclick="selectRating(2)">2</button>
+                        <button class="review-rating-btn" onclick="selectRating(3)">3</button>
+                        <button class="review-rating-btn" onclick="selectRating(4)">4</button>
+                        <button class="review-rating-btn" onclick="selectRating(5)">5</button>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); font-size:12px; margin-top:-8px; margin-bottom:12px;">
+                        <span>Tough day</span><span>Great day</span>
+                    </div>
+                    <textarea class="review-textarea" id="review-notes" placeholder="Any thoughts, triggers, or wins from today..."></textarea>
+                    <div style="margin-top:12px; display:flex; gap:8px;">
+                        <button class="btn btn-green btn-small" onclick="submitReview()">Save Review</button>
+                        <button class="btn btn-outline btn-small" onclick="openDrinkModal()">I had a drink today</button>
+                    </div>
+                </div>
+                <div class="pledge-streak-row">
+                    <div class="pledge-streak-item">
+                        <div class="pledge-streak-num">${pledgeStreak}</div>
+                        <div class="pledge-streak-label">day streak</div>
+                    </div>
+                    <div class="pledge-streak-item">
+                        <div class="pledge-streak-num">${data.pledges.length}</div>
+                        <div class="pledge-streak-label">total pledges</div>
+                    </div>
+                </div>
+            </div>`;
+    } else {
+        // Pledge taken, review done (or before 6pm)
+        const reviewText = todayPledge.review
+            ? `<div style="margin-top:12px; text-align:left; background:var(--bg); border-radius:12px; padding:14px;">
+                <div style="font-size:13px; color:var(--text-muted);">Today's review</div>
+                <div style="margin-top:4px;">Rating: ${'⭐'.repeat(todayPledge.review.rating || 0)}</div>
+                ${todayPledge.review.notes ? '<div style="margin-top:6px; font-size:14px; color:var(--text-muted);">' + escapeHtml(todayPledge.review.notes) + '</div>' : ''}
+               </div>`
+            : (hour < 18 ? '<div style="margin-top:12px; font-size:14px; color:var(--text-muted);">Your end-of-day review will appear here after 6pm.</div>' : '');
+
+        area.innerHTML = `
+            <div class="card pledge-card">
+                <div class="pledge-done">
+                    <div class="pledge-done-text">Pledge taken today ✓</div>
+                    <div class="pledge-done-time">at ${todayPledge.time}</div>
+                </div>
+                ${reviewText}
+                <div class="pledge-streak-row">
+                    <div class="pledge-streak-item">
+                        <div class="pledge-streak-num">${pledgeStreak}</div>
+                        <div class="pledge-streak-label">day streak</div>
+                    </div>
+                    <div class="pledge-streak-item">
+                        <div class="pledge-streak-num">${data.pledges.length}</div>
+                        <div class="pledge-streak-label">total pledges</div>
+                    </div>
+                </div>
+            </div>`;
+    }
+}
+
+let selectedRating = 0;
+function selectRating(rating) {
+    selectedRating = rating;
+    document.querySelectorAll('.review-rating-btn').forEach((btn, i) => {
+        btn.classList.toggle('selected', i < rating);
+    });
+}
+
+function takePledge() {
+    const data = getData();
+    if (!data.pledges) data.pledges = [];
+    const todayStr = new Date().toISOString().split('T')[0];
+    const timeStr = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+    // Remove any existing pledge for today
+    data.pledges = data.pledges.filter(p => p.date !== todayStr);
+    data.pledges.push({ date: todayStr, time: timeStr, review: null });
+    saveData(data);
+    renderPledgeArea();
+    renderPledgeHistory();
+}
+
+function submitReview() {
+    const data = getData();
+    const todayStr = new Date().toISOString().split('T')[0];
+    const pledge = data.pledges.find(p => p.date === todayStr);
+    if (!pledge) return;
+
+    const notes = document.getElementById('review-notes').value.trim();
+    pledge.review = {
+        rating: selectedRating || 3,
+        notes: notes
+    };
+    saveData(data);
+    selectedRating = 0;
+    renderPledgeArea();
+    renderPledgeHistory();
+}
+
+function renderPledgeHistory() {
+    const data = getData();
+    if (!data || !data.pledges) return;
+
+    const streak = getPledgeStreak(data);
+    const totalEl = document.getElementById('pledge-total');
+    const streakEl = document.getElementById('pledge-streak-count');
+    if (totalEl) totalEl.innerHTML = String(data.pledges.length);
+    if (streakEl) streakEl.innerHTML = String(streak);
+
+    const container = document.getElementById('pledge-history-list');
+    if (!container) return;
+
+    const sorted = [...data.pledges].reverse();
+    if (!sorted.length) {
+        container.innerHTML = '<div class="empty-state">No pledges yet — take your first one on the Home screen.</div>';
+        return;
+    }
+
+    container.innerHTML = sorted.map(p => {
+        const dateObj = new Date(p.date + 'T12:00:00');
+        const dateStr = dateObj.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+        const ratingStr = p.review ? '⭐'.repeat(p.review.rating || 0) : '';
+        const noteStr = p.review && p.review.notes ? '<div class="pledge-history-note">' + escapeHtml(p.review.notes) + '</div>' : '';
+
+        return `
+            <div class="pledge-history-item">
+                <div class="pledge-history-date">${dateStr}</div>
+                <div style="flex:1;">
+                    <div style="font-size:14px;">Pledged at ${p.time} ${ratingStr ? '— ' + ratingStr : ''}</div>
+                    ${noteStr}
+                </div>
+            </div>`;
+    }).join('');
+}
+
+// =========================================
+// MOOD
+// =========================================
+function logMood(mood) {
+    const data = getData();
+    const today = new Date().toISOString().split('T')[0];
+    data.moods = data.moods.filter(m => m.date !== today);
+    data.moods.push({ date: today, mood: mood });
+    saveData(data);
+
+    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelector(`.mood-btn[data-mood="${mood}"]`).classList.add('selected');
+
+    const responses = {
+        great: "That's amazing! Keep riding that positive energy. 🌟",
+        good: "Good to hear! Every good day is a victory.",
+        okay: "Okay is perfectly fine. You're still here, still going.",
+        tough: "Tough days build strength. You've got this. 💪",
+        struggling: "It's brave to admit that. Consider using the Urge Fighter or Chat. You're not alone."
+    };
+    document.getElementById('mood-response').textContent = responses[mood];
+
+    if (mood === 'struggling' || mood === 'tough') {
+        document.getElementById('mood-response').innerHTML = responses[mood] +
+            ' <button class="btn btn-small btn-outline" onclick="showScreen(\'urge\')" style="margin-top:8px;">Open Urge Fighter</button>';
+    }
+}
+
+// =========================================
+// MILESTONES
+// =========================================
+function renderMilestones(currentDays) {
+    const milestones = [
+        { days: 1, icon: '🌱', name: 'Day One', desc: 'The hardest step is the first one' },
+        { days: 7, icon: '⭐', name: 'One Week', desc: 'Seven days of strength' },
+        { days: 14, icon: '🔥', name: 'Two Weeks', desc: 'Building real momentum' },
+        { days: 30, icon: '🏅', name: 'One Month', desc: 'A whole month — incredible' },
+        { days: 60, icon: '💎', name: 'Two Months', desc: 'Diamond-level commitment' },
+        { days: 90, icon: '🏆', name: '90 Days', desc: 'A true champion' },
+        { days: 180, icon: '🌟', name: 'Half Year', desc: 'Six months of freedom' },
+        { days: 365, icon: '👑', name: 'One Year', desc: 'Legendary achievement' },
+    ];
+
+    const container = document.getElementById('milestones');
+    container.innerHTML = milestones.map(m => `
+        <div class="milestone ${currentDays >= m.days ? '' : 'milestone-locked'}">
+            <div class="milestone-icon">${m.icon}</div>
+            <div>
+                <div class="milestone-name">${m.name}</div>
+                <div class="milestone-desc">${currentDays >= m.days ? m.desc : m.days + ' days — keep going!'}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// =========================================
+// JOURNAL
+// =========================================
+let selectedJournalTag = 'win';
+
+function selectJournalTag(tag) {
+    selectedJournalTag = tag;
+    document.querySelectorAll('.journal-tag-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.tag === tag);
+    });
+}
+
+function addJournalEntry() {
+    const input = document.getElementById('journal-input');
+    const photoInput = document.getElementById('journal-photo-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const file = photoInput.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            saveJournalEntry(text, e.target.result);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        saveJournalEntry(text, null);
+    }
+    input.value = '';
+    photoInput.value = '';
+}
+
+function saveJournalEntry(text, photo) {
+    const data = getData();
+    if (!data.journal) data.journal = [];
+    data.journal.unshift({
+        text: text,
+        tag: selectedJournalTag,
+        photo: photo,
+        date: new Date().toISOString()
+    });
+    // Also keep wins array in sync for profile stats
+    if (!data.wins) data.wins = [];
+    data.wins = data.journal;
+    saveData(data);
+    renderJournal();
+}
+
+function deleteJournalEntry(index) {
+    const data = getData();
+    if (!data.journal) data.journal = [];
+    data.journal.splice(index, 1);
+    data.wins = data.journal;
+    saveData(data);
+    renderJournal();
+}
+
+function renderJournal() {
+    const data = getData();
+    if (!data) return;
+    if (!data.journal) data.journal = [];
+
+    const container = document.getElementById('journal-list');
+    if (!container) return;
+
+    if (!data.journal.length) {
+        container.innerHTML = '<div class="empty-state">No journal entries yet. Start documenting your journey above.</div>';
+        return;
+    }
+
+    const tagLabels = { win: 'Win', reflection: 'Reflection', gratitude: 'Gratitude', milestone: 'Milestone' };
+    const tagClasses = { win: 'journal-tag-win', reflection: 'journal-tag-reflection', gratitude: 'journal-tag-gratitude', milestone: 'journal-tag-milestone' };
+
+    container.innerHTML = data.journal.map((entry, i) => {
+        const dateStr = new Date(entry.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const tag = entry.tag || 'win';
+        const photoHtml = entry.photo ? '<img class="journal-entry-photo" src="' + entry.photo + '">' : '';
+
+        return `
+            <div class="journal-entry">
+                <div class="journal-entry-header">
+                    <span class="journal-entry-tag ${tagClasses[tag]}">${tagLabels[tag]}</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="journal-entry-date">${dateStr}</span>
+                        <button class="journal-entry-delete" onclick="deleteJournalEntry(${i})">×</button>
+                    </div>
+                </div>
+                <div class="journal-entry-text">${escapeHtml(entry.text)}</div>
+                ${photoHtml}
+            </div>`;
+    }).join('');
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// =========================================
+// CHAT (Supportive pre-built responses)
+// =========================================
+const chatResponses = {
+    lonely: "Feeling lonely is one of the hardest parts. But remember — reaching out right now, even to me, shows real strength. You're not as alone as you feel. Is there someone you trust you could message today?",
+    craving: "Cravings are temporary — they usually peak and pass within 15-20 minutes. Try the Urge Fighter game, drink a glass of water, or go for a short walk. You've beaten cravings before, and you can beat this one too.",
+    stressed: "Stress is a major trigger, and it's smart that you recognise it. Try taking 5 slow, deep breaths right now. In through your nose for 4 seconds, hold for 4, out through your mouth for 6. What's causing the stress?",
+    angry: "It's okay to feel angry. Anger is a valid emotion, and you don't need to numb it. What would help right now — venting more about it, or trying something to shift your focus?",
+    bored: "Boredom is one of the sneakiest triggers. Your brain is used to reaching for a drink to fill the gap. How about trying the Tetris game, going for a walk, or starting a small project you've been putting off?",
+    sad: "I'm sorry you're feeling sad. It takes real courage to sit with difficult emotions instead of reaching for a drink. What you're feeling is valid. Would it help to write about it in your wins — sometimes naming the feeling takes away its power.",
+    happy: "That's wonderful to hear! Savor this feeling — this is what sobriety gives you. Real, genuine happiness that you'll actually remember tomorrow. What's making you feel good?",
+    tempted: "The fact that you're here talking about it instead of giving in shows incredible strength. Remember why you started this journey. The drink will last an hour; the regret will last much longer. Can you try the Urge Fighter game?",
+    relapse: "Hey — a slip doesn't erase your progress. Every sober day you had still counts. What matters most is what you do right now: you came here, you're talking about it, and that means you haven't given up. Ready to start again?",
+    default: [
+        "I hear you. Tell me more about what you're going through.",
+        "That makes sense. How long have you been feeling this way?",
+        "Thank you for sharing that with me. It takes courage to be honest about how you feel.",
+        "You're doing the right thing by talking about it. What do you think would help you most right now?",
+        "Remember — every moment you choose sobriety is a victory. Even the hard moments.",
+        "It sounds like you're going through a lot. Be gentle with yourself today.",
+        "You've already shown so much strength by being here. What else is on your mind?"
+    ]
+};
+
+function sendChat() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const container = document.getElementById('chat-messages');
+    container.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`;
+    input.value = '';
+
+    setTimeout(() => {
+        const response = getChatResponse(text.toLowerCase());
+        container.innerHTML += `<div class="chat-msg bot">${response}</div>`;
+        container.scrollTop = container.scrollHeight;
+    }, 800);
+
+    container.scrollTop = container.scrollHeight;
+}
+
+function getChatResponse(text) {
+    const keywords = {
+        lonely: ['lonely', 'alone', 'no one', 'nobody', 'isolated'],
+        craving: ['craving', 'crave', 'want a drink', 'want to drink', 'thirsty', 'urge'],
+        stressed: ['stress', 'stressed', 'anxious', 'anxiety', 'overwhelm', 'pressure'],
+        angry: ['angry', 'mad', 'furious', 'pissed', 'frustrated', 'rage'],
+        bored: ['bored', 'boring', 'nothing to do', 'restless'],
+        sad: ['sad', 'depressed', 'down', 'low', 'unhappy', 'cry', 'crying'],
+        happy: ['happy', 'great', 'good', 'amazing', 'wonderful', 'fantastic', 'better'],
+        tempted: ['tempted', 'temptation', 'might drink', 'thinking about drinking', 'weak'],
+        relapse: ['relapse', 'relapsed', 'drank', 'had a drink', 'slipped', 'fell off']
+    };
+
+    for (const [key, words] of Object.entries(keywords)) {
+        if (words.some(w => text.includes(w))) {
+            return chatResponses[key];
+        }
+    }
+
+    const defaults = chatResponses.default;
+    return defaults[Math.floor(Math.random() * defaults.length)];
+}
+
+// =========================================
+// TETRIS
+// =========================================
+let tetrisInterval = null;
+let tetrisScore = 0;
+const COLS = 12;
+const ROWS = 20;
+const BLOCK = 20;
+let board = [];
+let currentPiece = null;
+let tetrisCtx = null;
+
+const PIECES = [
+    { shape: [[1,1,1,1]], color: '#06b6d4' },
+    { shape: [[1,1],[1,1]], color: '#eab308' },
+    { shape: [[0,1,0],[1,1,1]], color: '#a855f7' },
+    { shape: [[1,0],[1,0],[1,1]], color: '#f97316' },
+    { shape: [[0,1],[0,1],[1,1]], color: '#3b82f6' },
+    { shape: [[1,1,0],[0,1,1]], color: '#ef4444' },
+    { shape: [[0,1,1],[1,1,0]], color: '#22c55e' }
+];
+
+function startTetris() {
+    document.getElementById('urge-intro').style.display = 'none';
+    document.getElementById('tetris-game').style.display = 'block';
+    const canvas = document.getElementById('tetris-canvas');
+    tetrisCtx = canvas.getContext('2d');
+    tetrisScore = 0;
+    document.getElementById('tetris-score').textContent = '0';
+    board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+    spawnPiece();
+    if (tetrisInterval) clearInterval(tetrisInterval);
+    tetrisInterval = setInterval(tetrisTick, 500);
+    drawBoard();
+}
+
+function stopTetris() {
+    if (tetrisInterval) clearInterval(tetrisInterval);
+    tetrisInterval = null;
+    document.getElementById('urge-intro').style.display = 'block';
+    document.getElementById('tetris-game').style.display = 'none';
+}
+
+function spawnPiece() {
+    const p = PIECES[Math.floor(Math.random() * PIECES.length)];
+    currentPiece = {
+        shape: p.shape.map(r => [...r]),
+        color: p.color,
+        x: Math.floor(COLS / 2) - 1,
+        y: 0
+    };
+    if (!canPlace(currentPiece.shape, currentPiece.x, currentPiece.y)) {
+        clearInterval(tetrisInterval);
+        tetrisInterval = null;
+        setTimeout(() => alert('Game over! Score: ' + tetrisScore + '. You spent this time choosing yourself — that\'s a win.'), 100);
+    }
+}
+
+function canPlace(shape, px, py) {
+    for (let r = 0; r < shape.length; r++) {
+        for (let c = 0; c < shape[r].length; c++) {
+            if (!shape[r][c]) continue;
+            const nx = px + c, ny = py + r;
+            if (nx < 0 || nx >= COLS || ny >= ROWS) return false;
+            if (ny >= 0 && board[ny][nx]) return false;
+        }
+    }
+    return true;
+}
+
+function placePiece() {
+    for (let r = 0; r < currentPiece.shape.length; r++) {
+        for (let c = 0; c < currentPiece.shape[r].length; c++) {
+            if (!currentPiece.shape[r][c]) continue;
+            const ny = currentPiece.y + r;
+            if (ny >= 0) board[ny][currentPiece.x + c] = currentPiece.color;
+        }
+    }
+    // Clear lines
+    let cleared = 0;
+    for (let r = ROWS - 1; r >= 0; r--) {
+        if (board[r].every(cell => cell)) {
+            board.splice(r, 1);
+            board.unshift(Array(COLS).fill(0));
+            cleared++;
+            r++;
+        }
+    }
+    tetrisScore += cleared * 100;
+    document.getElementById('tetris-score').textContent = tetrisScore;
+    spawnPiece();
+}
+
+function tetrisTick() {
+    if (!currentPiece) return;
+    if (canPlace(currentPiece.shape, currentPiece.x, currentPiece.y + 1)) {
+        currentPiece.y++;
+    } else {
+        placePiece();
+    }
+    drawBoard();
+}
+
+function tetrisMove(dir) {
+    if (!currentPiece || !tetrisInterval) return;
+    if (dir === 'left' && canPlace(currentPiece.shape, currentPiece.x - 1, currentPiece.y)) currentPiece.x--;
+    if (dir === 'right' && canPlace(currentPiece.shape, currentPiece.x + 1, currentPiece.y)) currentPiece.x++;
+    if (dir === 'down') tetrisTick();
+    if (dir === 'rotate') {
+        const rotated = currentPiece.shape[0].map((_, i) => currentPiece.shape.map(r => r[i]).reverse());
+        if (canPlace(rotated, currentPiece.x, currentPiece.y)) currentPiece.shape = rotated;
+    }
+    drawBoard();
+}
+
+function drawBoard() {
+    if (!tetrisCtx) return;
+    tetrisCtx.fillStyle = '#0a0f1a';
+    tetrisCtx.fillRect(0, 0, COLS * BLOCK, ROWS * BLOCK);
+
+    // Draw grid
+    tetrisCtx.strokeStyle = '#1e293b';
+    for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+            tetrisCtx.strokeRect(c * BLOCK, r * BLOCK, BLOCK, BLOCK);
+            if (board[r][c]) {
+                tetrisCtx.fillStyle = board[r][c];
+                tetrisCtx.fillRect(c * BLOCK + 1, r * BLOCK + 1, BLOCK - 2, BLOCK - 2);
+            }
+        }
+    }
+
+    // Draw current piece
+    if (currentPiece) {
+        tetrisCtx.fillStyle = currentPiece.color;
+        for (let r = 0; r < currentPiece.shape.length; r++) {
+            for (let c = 0; c < currentPiece.shape[r].length; c++) {
+                if (currentPiece.shape[r][c]) {
+                    tetrisCtx.fillRect((currentPiece.x + c) * BLOCK + 1, (currentPiece.y + r) * BLOCK + 1, BLOCK - 2, BLOCK - 2);
+                }
+            }
+        }
+    }
+}
+
+// Keyboard controls for Tetris
+document.addEventListener('keydown', (e) => {
+    if (!tetrisInterval) return;
+    if (e.key === 'ArrowLeft') tetrisMove('left');
+    if (e.key === 'ArrowRight') tetrisMove('right');
+    if (e.key === 'ArrowDown') tetrisMove('down');
+    if (e.key === 'ArrowUp') tetrisMove('rotate');
+});
+
+// =========================================
+// WHY I QUIT
+// =========================================
+function addWhyReason() {
+    const input = document.getElementById('why-input');
+    const photoInput = document.getElementById('why-photo-input');
+    const text = input.value.trim();
+    if (!text) { alert('Enter a reason!'); return; }
+
+    const file = photoInput.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            saveWhyReason(text, e.target.result);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        saveWhyReason(text, null);
+    }
+    input.value = '';
+    photoInput.value = '';
+}
+
+function saveWhyReason(text, photo) {
+    const data = getData();
+    if (!data.whyReasons) data.whyReasons = [];
+    data.whyReasons.push({ text, photo, addedDate: new Date().toISOString() });
+    saveData(data);
+    renderWhyReasons();
+    renderWhyReminder();
+}
+
+function deleteWhyReason(index) {
+    const data = getData();
+    data.whyReasons.splice(index, 1);
+    saveData(data);
+    renderWhyReasons();
+    renderWhyReminder();
+}
+
+function renderWhyReasons() {
+    const data = getData();
+    if (!data) return;
+    if (!data.whyReasons) data.whyReasons = [];
+
+    const container = document.getElementById('why-list');
+    if (!container) return;
+
+    if (!data.whyReasons.length) {
+        container.innerHTML = '<div class="empty-state">No reasons added yet. Why did you choose sobriety?</div>';
+        return;
+    }
+
+    container.innerHTML = data.whyReasons.map((r, i) => {
+        const imgHtml = r.photo
+            ? '<img class="why-item-photo" src="' + r.photo + '">'
+            : '<div class="why-item-icon">💛</div>';
+        return `
+            <div class="why-item">
+                ${imgHtml}
+                <div class="why-item-text">${escapeHtml(r.text)}</div>
+                <button class="why-item-delete" onclick="deleteWhyReason(${i})">×</button>
+            </div>`;
+    }).join('');
+}
+
+function renderUrgeWhyReasons() {
+    const data = getData();
+    if (!data) return;
+    if (!data.whyReasons) data.whyReasons = [];
+
+    const container = document.getElementById('urge-why-reasons');
+    if (!container) return;
+
+    if (!data.whyReasons.length) {
+        container.innerHTML = '<div class="card" style="text-align:center; padding:20px;"><div style="color:var(--text-muted); font-size:14px;">No reasons added yet.</div><button class="btn btn-small btn-outline" style="margin-top:10px;" onclick="showScreen(\'why\')">Add Your Reasons</button></div>';
+        return;
+    }
+
+    container.innerHTML = '<div class="card"><div class="section-title">Remember Why You Quit</div>' +
+        data.whyReasons.map(r => {
+            const imgHtml = r.photo
+                ? '<img class="why-item-photo" src="' + r.photo + '">'
+                : '<div class="why-item-icon">💛</div>';
+            return '<div class="why-item">' + imgHtml + '<div class="why-item-text">' + escapeHtml(r.text) + '</div></div>';
+        }).join('') + '</div>';
+}
+
+function renderWhyReminder() {
+    const data = getData();
+    if (!data) return;
+    if (!data.whyReasons) data.whyReasons = [];
+
+    const area = document.getElementById('why-reminder-area');
+    if (!area) return;
+
+    if (!data.whyReasons.length) {
+        area.innerHTML = '';
+        return;
+    }
+
+    // Pick one reason based on the day (rotates daily)
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    const reason = data.whyReasons[dayOfYear % data.whyReasons.length];
+
+    const imgHtml = reason.photo
+        ? '<img class="why-reminder-photo" src="' + reason.photo + '">'
+        : '<div class="why-reminder-icon">💛</div>';
+
+    area.innerHTML = `
+        <div class="why-reminder">
+            ${imgHtml}
+            <div>
+                <div class="why-reminder-label">Remember why</div>
+                <div class="why-reminder-text">${escapeHtml(reason.text)}</div>
+            </div>
+        </div>`;
+}
+
+// =========================================
+// HELPERS
+// =========================================
+function getStreakDays(data) {
+    const parts = (data.soberDate || '').split('-');
+    const timeParts = (data.soberTime || '00:00').split(':');
+    const soberStart = new Date(
+        parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]),
+        parseInt(timeParts[0]) || 0, parseInt(timeParts[1]) || 0
+    );
+    const now = new Date();
+
+    let lastDrink = null;
+    if (data.drinks && data.drinks.length > 0) {
+        const drinkStr = data.drinks[data.drinks.length - 1];
+        lastDrink = new Date(drinkStr);
+        if (isNaN(lastDrink.getTime())) lastDrink = null;
+    }
+
+    const streakStart = lastDrink && lastDrink > soberStart ? lastDrink : soberStart;
+    if (isNaN(soberStart.getTime())) return 0;
+    return Math.max(0, Math.floor((now - streakStart) / (1000 * 60 * 60 * 24)));
+}
+
+function getMoneySaved(data) {
+    const dailySpend = (data.weeklySpend || 70) / 7;
+    return Math.round(getStreakDays(data) * dailySpend);
+}
+
+// =========================================
+// SOBER DATE EDITOR
+// =========================================
+function saveSoberDate() {
+    const data = getData();
+    const newDate = document.getElementById('profile-sober-date').value;
+    const newTime = document.getElementById('profile-sober-time').value || '00:00';
+    if (!newDate) { alert('Please select a date.'); return; }
+    data.soberDate = newDate;
+    data.soberTime = newTime;
+    saveData(data);
+    initApp();
+}
+
+// =========================================
+// VISION BOARD
+// =========================================
+function addVisionItem() {
+    const nameInput = document.getElementById('vision-name-input');
+    const costInput = document.getElementById('vision-cost-input');
+    const photoInput = document.getElementById('vision-photo-input');
+
+    const name = nameInput.value.trim();
+    const cost = parseFloat(costInput.value) || 0;
+    if (!name) { alert('Give your goal a name!'); return; }
+
+    const file = photoInput.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            saveVisionItem(name, cost, e.target.result);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        saveVisionItem(name, cost, null);
+    }
+
+    nameInput.value = '';
+    costInput.value = '';
+    photoInput.value = '';
+}
+
+function saveVisionItem(name, cost, photo) {
+    const data = getData();
+    if (!data.visionBoard) data.visionBoard = [];
+    data.visionBoard.push({ name, cost, photo, addedDate: new Date().toISOString() });
+    saveData(data);
+    renderVisionBoard();
+}
+
+function deleteVisionItem(index) {
+    const data = getData();
+    data.visionBoard.splice(index, 1);
+    saveData(data);
+    renderVisionBoard();
+}
+
+function renderVisionBoard() {
+    const data = getData();
+    if (!data) return;
+
+    if (!data.visionBoard) data.visionBoard = [];
+
+    const saved = getMoneySaved(data);
+    document.getElementById('vision-savings').textContent = '$' + saved.toLocaleString();
+
+    const container = document.getElementById('vision-list');
+    if (!data.visionBoard.length) {
+        container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">No goals yet — add something you\'re dreaming of!</div>';
+        return;
+    }
+
+    let runningTotal = saved;
+    container.innerHTML = data.visionBoard.map((item, i) => {
+        const pct = item.cost > 0 ? Math.min(100, Math.round((saved / item.cost) * 100)) : 100;
+        const canAfford = saved >= item.cost;
+        const barColor = canAfford ? 'var(--green)' : 'var(--accent)';
+        const imgHtml = item.photo
+            ? '<img class="vision-img" src="' + item.photo + '" alt="' + escapeHtml(item.name) + '">'
+            : '<div class="vision-img-placeholder">🎯</div>';
+
+        return `
+            <div class="vision-item">
+                ${imgHtml}
+                <div class="vision-info">
+                    <button class="vision-delete" onclick="deleteVisionItem(${i})">×</button>
+                    <div class="vision-name">${escapeHtml(item.name)}</div>
+                    <div class="vision-cost">$${item.cost.toLocaleString()}</div>
+                    <div class="vision-progress-bar">
+                        <div class="vision-progress-fill" style="width:${pct}%; background:${barColor};"></div>
+                    </div>
+                    <div class="vision-progress-text">
+                        <span>${pct}% there</span>
+                        <span>${canAfford ? 'You can afford this!' : '$' + Math.max(0, item.cost - saved).toLocaleString() + ' to go'}</span>
+                    </div>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+// =========================================
+// PROFILE & INSTAGRAM
+// =========================================
+function renderProfile() {
+    const data = getData();
+    if (!data) return;
+
+    const initial = data.name.charAt(0).toUpperCase();
+    document.getElementById('profile-avatar').textContent = initial;
+    document.getElementById('profile-name').textContent = data.name;
+
+    const handleEl = document.getElementById('profile-handle');
+    const btnEl = document.getElementById('profile-ig-btn');
+    const editInput = document.getElementById('ig-edit-input');
+
+    if (data.instagram) {
+        handleEl.innerHTML = '<a href="https://instagram.com/' + data.instagram + '" target="_blank">@' + escapeHtml(data.instagram) + '</a>';
+        btnEl.innerHTML = '<a href="https://instagram.com/' + data.instagram + '" target="_blank" class="btn btn-small btn-instagram" style="display:inline-block; margin-top:16px; text-decoration:none;">Follow on Instagram</a>';
+        editInput.value = data.instagram;
+    } else {
+        handleEl.textContent = 'No Instagram linked yet';
+        btnEl.innerHTML = '';
+        editInput.value = '';
+    }
+
+    // Populate sober date/time editor
+    document.getElementById('profile-sober-date').value = data.soberDate;
+    document.getElementById('profile-sober-time').value = data.soberTime || '00:00';
+
+    // Populate spending habits
+    document.getElementById('profile-weekly-spend').value = data.weeklySpend || '';
+    document.getElementById('profile-weekly-drinks').value = data.weeklyDrinks || '';
+    document.getElementById('profile-weekly-hours').value = data.weeklyHours || '';
+
+    // Stats
+    const sp = (data.soberDate || '').split('-');
+    const soberStart = new Date(parseInt(sp[0]), parseInt(sp[1]) - 1, parseInt(sp[2]));
+    const timeStr = data.soberTime ? ' at ' + data.soberTime : '';
+    document.getElementById('profile-sober-since').textContent = soberStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) + timeStr;
+    const journalCount = (data.journal || data.wins || []).length;
+    document.getElementById('profile-wins-count').textContent = journalCount + (journalCount === 1 ? ' entry' : ' entries');
+
+    const streakDaysProfile = getStreakDays(data);
+    const dailySpendProfile = (data.weeklySpend || 70) / 7;
+    document.getElementById('profile-money').textContent = '$' + Math.round(streakDaysProfile * dailySpendProfile).toLocaleString() + ' saved';
+}
+
+function saveSpendingHabits() {
+    const data = getData();
+    data.weeklySpend = parseFloat(document.getElementById('profile-weekly-spend').value) || 0;
+    data.weeklyDrinks = parseFloat(document.getElementById('profile-weekly-drinks').value) || 0;
+    data.weeklyHours = parseFloat(document.getElementById('profile-weekly-hours').value) || 0;
+    saveData(data);
+    initApp();
+}
+
+function saveInstagram() {
+    const data = getData();
+    const handle = document.getElementById('ig-edit-input').value.trim().replace(/^@/, '');
+    data.instagram = handle;
+    saveData(data);
+    renderProfile();
+}
+
+function copyProfileLink() {
+    const data = getData();
+    if (data.instagram) {
+        navigator.clipboard.writeText('https://instagram.com/' + data.instagram);
+        alert('Instagram link copied!');
+    } else {
+        alert('Add your Instagram handle first!');
+    }
+}
+
+// =========================================
+// INIT
+// =========================================
+initApp();
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+}
+</script>
+</body>
+</html>
