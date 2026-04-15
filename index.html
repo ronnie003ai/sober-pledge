@@ -1253,6 +1253,25 @@
             gap: 12px;
         }
 
+        /* Meditation */
+        .med-dur-btn.active, .med-sound-btn.active {
+            background: var(--gradient-green) !important;
+            border-color: transparent !important;
+            color: white !important;
+        }
+        #med-breath-circle.inhale {
+            width: 140px !important;
+            height: 140px !important;
+            border-color: rgba(16,185,129,0.6) !important;
+            background: radial-gradient(circle, rgba(16,185,129,0.4), rgba(16,185,129,0.08)) !important;
+        }
+        #med-breath-circle.exhale {
+            width: 60px !important;
+            height: 60px !important;
+            border-color: rgba(16,185,129,0.3) !important;
+            background: radial-gradient(circle, rgba(16,185,129,0.2), rgba(16,185,129,0.02)) !important;
+        }
+
         /* Floating Chat Button */
         .fab-chat {
             position: fixed;
@@ -1605,6 +1624,7 @@
 
             <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
                 <button class="btn" onclick="startTetris()">Play Tetris</button>
+                <button class="btn btn-green" onclick="showMeditation()">Meditate</button>
                 <button class="btn btn-outline" onclick="showScreen('chat')">Talk to Someone</button>
             </div>
 
@@ -1614,6 +1634,67 @@
                 <button class="btn btn-outline btn-small" onclick="showScreen('why')">Edit My Reasons</button>
             </div>
         </div>
+
+        <!-- Meditation -->
+        <div id="meditation-area" style="display:none;">
+            <div style="text-align:center; padding:20px 0;">
+                <button class="btn btn-outline btn-small" onclick="stopMeditation()" style="margin-bottom:20px;">Back</button>
+
+                <div id="meditation-setup">
+                    <h2 style="margin-bottom:8px;">Find Your Calm</h2>
+                    <p style="color:var(--text-muted); margin-bottom:24px; font-size:14px; line-height:1.6;">Choose your duration and soundscape. Focus on the breathing circle and let everything else fade away.</p>
+
+                    <div class="section-title">Duration</div>
+                    <div style="display:flex; gap:8px; justify-content:center; margin-bottom:20px; flex-wrap:wrap;" id="meditation-durations">
+                        <button class="btn btn-small btn-outline med-dur-btn" onclick="selectMedDuration(2)">2 min</button>
+                        <button class="btn btn-small btn-outline med-dur-btn active" onclick="selectMedDuration(5)">5 min</button>
+                        <button class="btn btn-small btn-outline med-dur-btn" onclick="selectMedDuration(10)">10 min</button>
+                        <button class="btn btn-small btn-outline med-dur-btn" onclick="selectMedDuration(15)">15 min</button>
+                        <button class="btn btn-small btn-outline med-dur-btn" onclick="selectMedDuration(20)">20 min</button>
+                    </div>
+
+                    <div class="section-title">Soundscape</div>
+                    <div style="display:flex; gap:8px; justify-content:center; margin-bottom:24px; flex-wrap:wrap;" id="meditation-sounds">
+                        <button class="btn btn-small btn-outline med-sound-btn active" onclick="selectMedSound('rain')">Rain</button>
+                        <button class="btn btn-small btn-outline med-sound-btn" onclick="selectMedSound('ocean')">Ocean</button>
+                        <button class="btn btn-small btn-outline med-sound-btn" onclick="selectMedSound('forest')">Forest</button>
+                        <button class="btn btn-small btn-outline med-sound-btn" onclick="selectMedSound('silence')">Silence</button>
+                    </div>
+
+                    <button class="btn btn-green btn-full" onclick="beginMeditation()" style="max-width:280px;">Begin Session</button>
+                </div>
+
+                <div id="meditation-active" style="display:none;">
+                    <div id="med-timer-display" style="font-size:48px; font-weight:700; color:var(--green); margin-bottom:8px;">5:00</div>
+                    <div id="med-instruction" style="font-size:16px; color:var(--text-muted); margin-bottom:24px;">Breathe in...</div>
+
+                    <div style="position:relative; width:200px; height:200px; margin:0 auto 24px;">
+                        <svg width="200" height="200" style="transform:rotate(-90deg);">
+                            <circle cx="100" cy="100" r="90" fill="none" stroke="var(--border)" stroke-width="4"/>
+                            <circle cx="100" cy="100" r="90" fill="none" stroke="var(--green)" stroke-width="4" id="med-progress-ring"
+                                stroke-dasharray="565.48" stroke-dashoffset="0" stroke-linecap="round" style="transition: stroke-dashoffset 1s linear;"/>
+                        </svg>
+                        <div id="med-breath-circle" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:80px; height:80px; border-radius:50%; background:radial-gradient(circle, rgba(16,185,129,0.3), rgba(16,185,129,0.05)); border:2px solid rgba(16,185,129,0.4); transition: all 4s ease-in-out; display:flex; align-items:center; justify-content:center;">
+                            <div style="width:20px; height:20px; border-radius:50%; background:var(--green); opacity:0.6;"></div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-outline btn-small" onclick="stopMeditation()">End Session</button>
+                </div>
+
+                <div id="meditation-complete" style="display:none;">
+                    <div style="font-size:48px; margin-bottom:12px;">🧘</div>
+                    <h2 style="margin-bottom:8px;">Session Complete</h2>
+                    <p style="color:var(--text-muted); margin-bottom:8px; font-size:15px;" id="med-complete-msg">You meditated for 5 minutes.</p>
+                    <p style="color:var(--green); font-weight:600; margin-bottom:24px;">You chose calm over chaos. That's strength.</p>
+                    <div style="display:flex; gap:10px; justify-content:center;">
+                        <button class="btn btn-green" onclick="showMeditation()">Meditate Again</button>
+                        <button class="btn btn-outline" onclick="stopMeditation()">Done</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="tetris-game" class="tetris-container" style="display:none;">
             <div class="tetris-header">
                 <button class="btn btn-outline btn-small" onclick="stopTetris()">Back</button>
@@ -2685,6 +2766,272 @@ function getChatResponse(text) {
 
     const defaults = chatResponses.default;
     return defaults[Math.floor(Math.random() * defaults.length)];
+}
+
+// =========================================
+// MEDITATION
+// =========================================
+let medDuration = 5;
+let medSound = 'rain';
+let medTimer = null;
+let medAudioCtx = null;
+let medAudioNodes = [];
+let medSecondsLeft = 0;
+let medBreathPhase = 'inhale';
+let medBreathTimer = null;
+
+function selectMedDuration(mins) {
+    medDuration = mins;
+    document.querySelectorAll('.med-dur-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+function selectMedSound(sound) {
+    medSound = sound;
+    document.querySelectorAll('.med-sound-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+function showMeditation() {
+    document.getElementById('urge-intro').style.display = 'none';
+    document.getElementById('tetris-game').style.display = 'none';
+    document.getElementById('meditation-area').style.display = 'block';
+    document.getElementById('meditation-setup').style.display = 'block';
+    document.getElementById('meditation-active').style.display = 'none';
+    document.getElementById('meditation-complete').style.display = 'none';
+}
+
+function stopMeditation() {
+    // Stop audio
+    if (medAudioCtx) {
+        medAudioNodes.forEach(n => { try { n.stop(); } catch(e) {} try { n.disconnect(); } catch(e) {} });
+        medAudioNodes = [];
+        try { medAudioCtx.close(); } catch(e) {}
+        medAudioCtx = null;
+    }
+    if (medTimer) { clearInterval(medTimer); medTimer = null; }
+    if (medBreathTimer) { clearInterval(medBreathTimer); medBreathTimer = null; }
+
+    document.getElementById('meditation-area').style.display = 'none';
+    document.getElementById('urge-intro').style.display = 'block';
+}
+
+function beginMeditation() {
+    document.getElementById('meditation-setup').style.display = 'none';
+    document.getElementById('meditation-active').style.display = 'block';
+    document.getElementById('meditation-complete').style.display = 'none';
+
+    medSecondsLeft = medDuration * 60;
+    const totalSeconds = medSecondsLeft;
+    updateMedTimerDisplay();
+
+    // Start ambient sound
+    if (medSound !== 'silence') {
+        startAmbientSound(medSound);
+    }
+
+    // Start breathing guide
+    startBreathingGuide();
+
+    // Timer countdown
+    medTimer = setInterval(() => {
+        medSecondsLeft--;
+        updateMedTimerDisplay();
+
+        // Update progress ring
+        const pct = 1 - (medSecondsLeft / totalSeconds);
+        const circumference = 565.48;
+        document.getElementById('med-progress-ring').setAttribute('stroke-dashoffset', circumference * (1 - pct));
+
+        if (medSecondsLeft <= 0) {
+            completeMeditation();
+        }
+    }, 1000);
+}
+
+function updateMedTimerDisplay() {
+    const mins = Math.floor(medSecondsLeft / 60);
+    const secs = medSecondsLeft % 60;
+    document.getElementById('med-timer-display').textContent = mins + ':' + String(secs).padStart(2, '0');
+}
+
+function startBreathingGuide() {
+    const circle = document.getElementById('med-breath-circle');
+    const instruction = document.getElementById('med-instruction');
+
+    function breathCycle() {
+        // Inhale — 4 seconds
+        circle.className = 'inhale';
+        instruction.textContent = 'Breathe in...';
+
+        setTimeout(() => {
+            // Hold — 4 seconds
+            instruction.textContent = 'Hold...';
+        }, 4000);
+
+        setTimeout(() => {
+            // Exhale — 6 seconds
+            circle.className = 'exhale';
+            instruction.textContent = 'Breathe out...';
+        }, 8000);
+
+        // Full cycle is 14 seconds (4 in + 4 hold + 6 out)
+    }
+
+    breathCycle();
+    medBreathTimer = setInterval(breathCycle, 14000);
+}
+
+function startAmbientSound(type) {
+    medAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = medAudioCtx;
+
+    if (type === 'rain') {
+        // Brown noise for rain-like ambience
+        const bufferSize = 2 * ctx.sampleRate;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        let lastOut = 0;
+        for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            data[i] = (lastOut + (0.02 * white)) / 1.02;
+            lastOut = data[i];
+            data[i] *= 3.5;
+        }
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        const gain = ctx.createGain();
+        gain.gain.value = 0.3;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 800;
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        source.start();
+        medAudioNodes.push(source);
+
+    } else if (type === 'ocean') {
+        // Layered noise with LFO for wave-like sound
+        const bufferSize = 2 * ctx.sampleRate;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        let lastOut = 0;
+        for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            data[i] = (lastOut + (0.02 * white)) / 1.02;
+            lastOut = data[i];
+            data[i] *= 3.5;
+        }
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        const gain = ctx.createGain();
+        gain.gain.value = 0.25;
+        // LFO to modulate volume like waves
+        const lfo = ctx.createOscillator();
+        lfo.frequency.value = 0.08; // Very slow wave rhythm
+        const lfoGain = ctx.createGain();
+        lfoGain.gain.value = 0.15;
+        lfo.connect(lfoGain);
+        lfoGain.connect(gain.gain);
+        lfo.start();
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 600;
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        source.start();
+        medAudioNodes.push(source, lfo);
+
+    } else if (type === 'forest') {
+        // Gentle pink noise + soft high tone for bird-like ambience
+        const bufferSize = 2 * ctx.sampleRate;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+        for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            b0 = 0.99886 * b0 + white * 0.0555179;
+            b1 = 0.99332 * b1 + white * 0.0750759;
+            b2 = 0.96900 * b2 + white * 0.1538520;
+            b3 = 0.86650 * b3 + white * 0.3104856;
+            b4 = 0.55000 * b4 + white * 0.5329522;
+            b5 = -0.7616 * b5 - white * 0.0168980;
+            data[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+            data[i] *= 0.11;
+            b6 = white * 0.115926;
+        }
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        const gain = ctx.createGain();
+        gain.gain.value = 0.2;
+        source.connect(gain);
+        gain.connect(ctx.destination);
+        source.start();
+        medAudioNodes.push(source);
+
+        // Gentle high tone for atmosphere
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = 528; // Solfeggio frequency
+        const oscGain = ctx.createGain();
+        oscGain.gain.value = 0.02;
+        osc.connect(oscGain);
+        oscGain.connect(ctx.destination);
+        osc.start();
+        medAudioNodes.push(osc);
+    }
+}
+
+function completeMeditation() {
+    if (medTimer) { clearInterval(medTimer); medTimer = null; }
+    if (medBreathTimer) { clearInterval(medBreathTimer); medBreathTimer = null; }
+
+    // Play completion chime
+    if (medAudioCtx) {
+        // Fade out ambient sound
+        medAudioNodes.forEach(n => { try { n.stop(medAudioCtx.currentTime + 2); } catch(e) {} });
+
+        // Chime
+        const chime = medAudioCtx.createOscillator();
+        chime.type = 'sine';
+        chime.frequency.value = 528;
+        const chimeGain = medAudioCtx.createGain();
+        chimeGain.gain.setValueAtTime(0.3, medAudioCtx.currentTime);
+        chimeGain.gain.exponentialRampToValueAtTime(0.001, medAudioCtx.currentTime + 3);
+        chime.connect(chimeGain);
+        chimeGain.connect(medAudioCtx.destination);
+        chime.start();
+        chime.stop(medAudioCtx.currentTime + 3);
+
+        setTimeout(() => {
+            medAudioNodes = [];
+            try { medAudioCtx.close(); } catch(e) {}
+            medAudioCtx = null;
+        }, 3500);
+    }
+
+    document.getElementById('meditation-active').style.display = 'none';
+    document.getElementById('meditation-complete').style.display = 'block';
+    document.getElementById('med-complete-msg').textContent = 'You meditated for ' + medDuration + ' minute' + (medDuration > 1 ? 's' : '') + '.';
+
+    // Log it as a journal entry
+    const data = getData();
+    if (data) {
+        if (!data.journal) data.journal = [];
+        data.journal.unshift({
+            text: 'Completed a ' + medDuration + '-minute meditation session.',
+            tag: 'milestone',
+            photo: null,
+            date: new Date().toISOString()
+        });
+        data.wins = data.journal;
+        saveData(data);
+    }
 }
 
 // =========================================
