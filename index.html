@@ -1173,6 +1173,30 @@
             color: white;
         }
 
+        /* Share Card Modal */
+        .share-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .share-modal.active { display: flex; }
+        .share-modal canvas {
+            max-width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+        }
+        .share-modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
         /* Floating Chat Button */
         .fab-chat {
             position: fixed;
@@ -1356,6 +1380,10 @@
             <div class="streak-number" id="streak-days">0</div>
             <div class="streak-label">days sober</div>
             <div class="streak-message" id="streak-msg"></div>
+            <button class="btn btn-small btn-outline" onclick="generateShareCard()" style="margin-top:16px; position:relative; display:inline-flex; align-items:center; gap:6px;">
+                <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Share My Progress
+            </button>
         </div>
 
         <div class="stats-row">
@@ -1417,6 +1445,23 @@
         </div>
 
         <div id="health-timeline-card"></div>
+
+        <div class="card">
+            <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Last 7 Days
+            </div>
+            <div style="display:flex;gap:12px;">
+                <div style="flex:1;">
+                    <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Mood</div>
+                    <canvas id="mood-chart" width="220" height="100" style="width:100%;height:auto;"></canvas>
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Pledges</div>
+                    <div id="pledge-week-dots" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;padding-top:8px;"></div>
+                </div>
+            </div>
+        </div>
 
         <div class="card">
             <div class="section-title">Milestones</div>
@@ -1682,6 +1727,18 @@
             <div class="badge-grid" id="badge-grid"></div>
         </div>
 
+        <div class="card" style="margin-top: 16px;">
+            <div class="section-title">Notifications</div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <div style="font-weight:600; font-size:15px;">Daily pledge reminder</div>
+                    <div style="font-size:13px; color:var(--text-muted);">Get reminded every morning at 8am</div>
+                </div>
+                <button class="btn btn-small" id="notif-btn" onclick="toggleNotifications()">Enable</button>
+            </div>
+            <div id="notif-status" style="font-size:12px; color:var(--text-muted); margin-top:8px;"></div>
+        </div>
+
         <div class="card" style="margin-top: 16px; cursor:pointer; display:flex; align-items:center; gap:16px;" onclick="showScreen('vision')">
             <div style="width:48px;height:48px;border-radius:14px;background:var(--gradient-green);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
@@ -1697,6 +1754,31 @@
             <div class="section-title">Share Your Journey</div>
             <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 16px;">Connect your Instagram so others on Sober Pledge can follow your journey and cheer you on.</p>
             <button class="btn btn-outline btn-small" onclick="copyProfileLink()">Copy my profile link</button>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
+            <div class="section-title">Data & Backup</div>
+            <p style="color: var(--text-muted); font-size: 13px; line-height: 1.5; margin-bottom: 14px;">Your data is stored on this device. Back it up so you never lose your progress.</p>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn btn-small" onclick="exportData()">
+                    <span style="display:flex;align-items:center;gap:5px;">
+                        <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Export Backup
+                    </span>
+                </button>
+                <label class="btn btn-small btn-outline" style="cursor:pointer;">
+                    <span style="display:flex;align-items:center;gap:5px;">
+                        <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Restore Backup
+                    </span>
+                    <input type="file" accept=".json" id="restore-file" style="display:none;" onchange="restoreData(this)">
+                </label>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 16px; border-color: rgba(239, 68, 68, 0.2);">
+            <div class="section-title" style="color:var(--red);">Danger Zone</div>
+            <button class="btn btn-small btn-outline" style="border-color:rgba(239,68,68,0.3);color:var(--red);" onclick="resetAllData()">Reset All Data</button>
         </div>
     </div>
 
@@ -1727,6 +1809,26 @@
             <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span> Profile
         </button>
     </nav>
+</div>
+
+<!-- Share Card Modal -->
+<div class="share-modal" id="share-modal" onclick="if(event.target===this)closeShareModal()">
+    <canvas id="share-canvas" width="540" height="540"></canvas>
+    <div class="share-modal-actions">
+        <button class="btn btn-small" onclick="downloadShareCard()">
+            <span style="display:flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Save Image
+            </span>
+        </button>
+        <button class="btn btn-small btn-green" onclick="nativeShare()">
+            <span style="display:flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Share
+            </span>
+        </button>
+        <button class="btn btn-small btn-outline" onclick="closeShareModal()">Close</button>
+    </div>
 </div>
 
 <!-- Log Drink Modal -->
@@ -1913,6 +2015,10 @@ function initApp() {
     renderDailyQuote();
     renderHealthTimeline();
 
+    // Charts
+    renderMoodChart();
+    renderPledgeWeekDots();
+
     // Milestones
     renderMilestones(streakDays);
     renderJournal();
@@ -1920,6 +2026,8 @@ function initApp() {
     renderVisionBoard();
     renderCommunityFeed();
     renderBadges();
+    updateNotifUI();
+    checkPledgeReminder();
 }
 
 // =========================================
@@ -2671,6 +2779,184 @@ function renderWhyReminder() {
 }
 
 // =========================================
+// SHARE CARD
+// =========================================
+function generateShareCard() {
+    const data = getData();
+    if (!data) return;
+    const canvas = document.getElementById('share-canvas');
+    const ctx = canvas.getContext('2d');
+    const W = 540, H = 540;
+
+    // Background gradient
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#0f1629');
+    bg.addColorStop(0.5, '#141b2d');
+    bg.addColorStop(1, '#1a1040');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Decorative circles
+    ctx.globalAlpha = 0.06;
+    ctx.beginPath();
+    ctx.arc(W * 0.8, H * 0.15, 160, 0, Math.PI * 2);
+    ctx.fillStyle = '#6366f1';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(W * 0.15, H * 0.85, 120, 0, Math.PI * 2);
+    ctx.fillStyle = '#10b981';
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Shield icon
+    ctx.save();
+    ctx.translate(W / 2, 72);
+    ctx.beginPath();
+    const shieldSize = 28;
+    ctx.moveTo(0, -shieldSize);
+    ctx.bezierCurveTo(-shieldSize, -shieldSize, -shieldSize, 0, -shieldSize, shieldSize * 0.3);
+    ctx.bezierCurveTo(-shieldSize, shieldSize, 0, shieldSize * 1.4, 0, shieldSize * 1.4);
+    ctx.bezierCurveTo(0, shieldSize * 1.4, shieldSize, shieldSize, shieldSize, shieldSize * 0.3);
+    ctx.bezierCurveTo(shieldSize, 0, shieldSize, -shieldSize, 0, -shieldSize);
+    const shieldGrad = ctx.createLinearGradient(-shieldSize, -shieldSize, shieldSize, shieldSize);
+    shieldGrad.addColorStop(0, '#6366f1');
+    shieldGrad.addColorStop(1, '#8b5cf6');
+    ctx.fillStyle = shieldGrad;
+    ctx.fill();
+    // Checkmark
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-8, 2);
+    ctx.lineTo(-2, 8);
+    ctx.lineTo(10, -6);
+    ctx.stroke();
+    ctx.restore();
+
+    // App name
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '600 16px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('SOBER PLEDGE', W / 2, 118);
+
+    // User name
+    ctx.fillStyle = '#64748b';
+    ctx.font = '500 14px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(data.name + "'s Journey", W / 2, 142);
+
+    // Streak number
+    const streakDays = getStreakDays(data);
+    const streakGrad = ctx.createLinearGradient(W / 2 - 80, 180, W / 2 + 80, 260);
+    streakGrad.addColorStop(0, '#6366f1');
+    streakGrad.addColorStop(0.5, '#a78bfa');
+    streakGrad.addColorStop(1, '#818cf8');
+    ctx.fillStyle = streakGrad;
+    ctx.font = '800 96px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(String(streakDays), W / 2, 255);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '500 20px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText('days sober', W / 2, 285);
+
+    // Divider line
+    ctx.strokeStyle = 'rgba(99, 102, 241, 0.2)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(80, 315);
+    ctx.lineTo(W - 80, 315);
+    ctx.stroke();
+
+    // Stats row
+    const curr = getCurrencySymbol(data);
+    const moneySaved = getMoneySaved(data);
+    const dailyDrinks = (data.weeklyDrinks || 14) / 7;
+    const drinksAvoided = Math.round(streakDays * dailyDrinks);
+    const dailyHours = (data.weeklyHours || 10) / 7;
+    const hoursSaved = Math.round(streakDays * dailyHours);
+    const timeSaved = hoursSaved >= 24 ? Math.floor(hoursSaved / 24) + 'd ' + (hoursSaved % 24) + 'h' : hoursSaved + 'h';
+
+    const stats = [
+        { value: curr + moneySaved.toLocaleString(), label: 'Saved', color: '#10b981' },
+        { value: drinksAvoided.toLocaleString(), label: 'Drinks Avoided', color: '#6366f1' },
+        { value: timeSaved, label: 'Time Back', color: '#f59e0b' },
+    ];
+
+    const statWidth = (W - 120) / 3;
+    stats.forEach((s, i) => {
+        const x = 60 + statWidth * i + statWidth / 2;
+        const y = 360;
+
+        ctx.fillStyle = s.color;
+        ctx.font = '700 26px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.fillText(s.value, x, y);
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '500 12px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.fillText(s.label, x, y + 22);
+    });
+
+    // Motivational message at bottom
+    const messages = [
+        "Every day is a victory.",
+        "Choosing myself, one day at a time.",
+        "Stronger than yesterday.",
+        "Freedom looks good on me.",
+        "This is what progress looks like.",
+    ];
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'italic 500 15px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText('"' + messages[dayOfYear % messages.length] + '"', W / 2, 440);
+
+    // Sober date
+    const sp = (data.soberDate || '').split('-');
+    const soberStart = new Date(parseInt(sp[0]), parseInt(sp[1]) - 1, parseInt(sp[2]));
+    const dateStr = 'Since ' + soberStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    ctx.fillStyle = '#475569';
+    ctx.font = '500 12px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(dateStr, W / 2, 470);
+
+    // Bottom branding
+    ctx.fillStyle = 'rgba(99, 102, 241, 0.4)';
+    ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText('soberpledge.app', W / 2, 515);
+
+    // Show modal
+    document.getElementById('share-modal').classList.add('active');
+}
+
+function closeShareModal() {
+    document.getElementById('share-modal').classList.remove('active');
+}
+
+function downloadShareCard() {
+    const canvas = document.getElementById('share-canvas');
+    const link = document.createElement('a');
+    link.download = 'sober-pledge-' + getStreakDays(getData()) + '-days.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+}
+
+function nativeShare() {
+    const canvas = document.getElementById('share-canvas');
+    canvas.toBlob(function(blob) {
+        const file = new File([blob], 'sober-pledge.png', { type: 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({
+                title: 'My Sober Pledge',
+                text: "I'm " + getStreakDays(getData()) + " days sober!",
+                files: [file]
+            });
+        } else {
+            // Fallback — download
+            downloadShareCard();
+        }
+    }, 'image/png');
+}
+
+// =========================================
 // DAILY QUOTES
 // =========================================
 const dailyQuotes = [
@@ -2777,6 +3063,133 @@ function renderHealthTimeline() {
     });
 
     html += '</div>';
+    container.innerHTML = html;
+}
+
+// =========================================
+// CHARTS
+// =========================================
+function renderMoodChart() {
+    const data = getData();
+    if (!data) return;
+    const canvas = document.getElementById('mood-chart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const moodValues = { great: 5, good: 4, okay: 3, tough: 2, struggling: 1 };
+    const moodColors = { great: '#10b981', good: '#6366f1', okay: '#f59e0b', tough: '#f97316', struggling: '#ef4444' };
+
+    // Get last 7 days of moods
+    const today = new Date();
+    const points = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const mood = (data.moods || []).find(m => m.date === dateStr);
+        points.push({
+            day: d.toLocaleDateString('en-GB', { weekday: 'narrow' }),
+            value: mood ? moodValues[mood.mood] : null,
+            mood: mood ? mood.mood : null
+        });
+    }
+
+    const padding = { left: 8, right: 8, top: 10, bottom: 20 };
+    const chartW = W - padding.left - padding.right;
+    const chartH = H - padding.top - padding.bottom;
+    const stepX = chartW / 6;
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(100, 116, 139, 0.15)';
+    ctx.lineWidth = 0.5;
+    for (let i = 1; i <= 5; i++) {
+        const y = padding.top + chartH - (i / 5) * chartH;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(W - padding.right, y);
+        ctx.stroke();
+    }
+
+    // Draw line connecting points
+    const validPoints = points.map((p, i) => p.value ? { x: padding.left + i * stepX, y: padding.top + chartH - (p.value / 5) * chartH, mood: p.mood } : null);
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#6366f1';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    let started = false;
+    validPoints.forEach(p => {
+        if (!p) return;
+        if (!started) { ctx.moveTo(p.x, p.y); started = true; }
+        else ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+
+    // Draw gradient fill under line
+    if (started) {
+        const firstValid = validPoints.find(p => p);
+        const lastValid = [...validPoints].reverse().find(p => p);
+        if (firstValid && lastValid) {
+            ctx.lineTo(lastValid.x, padding.top + chartH);
+            ctx.lineTo(firstValid.x, padding.top + chartH);
+            ctx.closePath();
+            const fillGrad = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
+            fillGrad.addColorStop(0, 'rgba(99, 102, 241, 0.2)');
+            fillGrad.addColorStop(1, 'rgba(99, 102, 241, 0)');
+            ctx.fillStyle = fillGrad;
+            ctx.fill();
+        }
+    }
+
+    // Draw dots
+    validPoints.forEach(p => {
+        if (!p) return;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = moodColors[p.mood] || '#6366f1';
+        ctx.fill();
+        ctx.strokeStyle = '#141b2d';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    });
+
+    // Day labels
+    ctx.fillStyle = '#64748b';
+    ctx.font = '500 10px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    points.forEach((p, i) => {
+        ctx.fillText(p.day, padding.left + i * stepX, H - 4);
+    });
+}
+
+function renderPledgeWeekDots() {
+    const data = getData();
+    if (!data) return;
+    const container = document.getElementById('pledge-week-dots');
+    if (!container) return;
+
+    const today = new Date();
+    let html = '';
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const pledged = (data.pledges || []).find(p => p.date === dateStr);
+        const dayLabel = d.toLocaleDateString('en-GB', { weekday: 'narrow' });
+        const isToday = i === 0;
+
+        const bgColor = pledged ? 'var(--green)' : (isToday ? 'var(--accent-glow)' : 'var(--border)');
+        const icon = pledged ? '✓' : (isToday ? '·' : '');
+        const border = isToday && !pledged ? '2px solid var(--accent)' : 'none';
+
+        html += `<div style="text-align:center;">
+            <div style="width:28px;height:28px;border-radius:50%;background:${bgColor};border:${border};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;">${icon}</div>
+            <div style="font-size:9px;color:var(--text-muted);margin-top:3px;">${dayLabel}</div>
+        </div>`;
+    }
     container.innerHTML = html;
 }
 
@@ -3209,6 +3622,80 @@ function renderVisionBoard() {
 }
 
 // =========================================
+// NOTIFICATIONS
+// =========================================
+function toggleNotifications() {
+    if (!('Notification' in window)) {
+        document.getElementById('notif-status').textContent = 'Notifications not supported in this browser.';
+        return;
+    }
+    if (Notification.permission === 'granted') {
+        // Already enabled — toggle off
+        localStorage.setItem('soberpledge-notifs', 'off');
+        updateNotifUI();
+        return;
+    }
+    if (Notification.permission === 'denied') {
+        document.getElementById('notif-status').textContent = 'Notifications were blocked. Please enable them in your browser settings.';
+        return;
+    }
+    Notification.requestPermission().then(perm => {
+        if (perm === 'granted') {
+            localStorage.setItem('soberpledge-notifs', 'on');
+            new Notification('Sober Pledge', {
+                body: 'Notifications enabled! We\'ll remind you to take your daily pledge.',
+                icon: 'icon-192.png'
+            });
+        }
+        updateNotifUI();
+    });
+}
+
+function updateNotifUI() {
+    const btn = document.getElementById('notif-btn');
+    const status = document.getElementById('notif-status');
+    if (!btn) return;
+
+    const enabled = localStorage.getItem('soberpledge-notifs') === 'on' && Notification.permission === 'granted';
+    btn.textContent = enabled ? 'Disable' : 'Enable';
+    btn.className = enabled ? 'btn btn-small btn-outline' : 'btn btn-small';
+
+    if (Notification.permission === 'denied') {
+        status.textContent = 'Notifications blocked by browser. Check your settings.';
+    } else if (enabled) {
+        status.textContent = 'You\'ll get a daily reminder at 8am.';
+    } else {
+        status.textContent = '';
+    }
+}
+
+// Check for pledge reminder (runs when app opens)
+function checkPledgeReminder() {
+    if (localStorage.getItem('soberpledge-notifs') !== 'on') return;
+    if (Notification.permission !== 'granted') return;
+
+    const data = getData();
+    if (!data) return;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayPledge = (data.pledges || []).find(p => p.date === todayStr);
+    const hour = new Date().getHours();
+
+    // If it's morning and no pledge taken, show reminder
+    if (hour >= 7 && hour <= 11 && !todayPledge) {
+        const lastReminder = localStorage.getItem('soberpledge-last-reminder');
+        if (lastReminder === todayStr) return; // Already reminded today
+
+        localStorage.setItem('soberpledge-last-reminder', todayStr);
+        new Notification('Sober Pledge', {
+            body: 'Good morning ' + data.name + '! Ready to take today\'s pledge?',
+            icon: 'icon-192.png',
+            tag: 'daily-pledge'
+        });
+    }
+}
+
+// =========================================
 // BADGES
 // =========================================
 function renderBadges() {
@@ -3326,6 +3813,66 @@ function copyProfileLink() {
     } else {
         alert('Add your Instagram handle first!');
     }
+}
+
+// =========================================
+// DATA BACKUP / RESTORE
+// =========================================
+function exportData() {
+    const data = getData();
+    if (!data) { alert('No data to export.'); return; }
+
+    const exportObj = {
+        appData: data,
+        communityPosts: getCommunityPosts(),
+        exportDate: new Date().toISOString(),
+        version: '1.0'
+    };
+
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.download = 'sober-pledge-backup-' + new Date().toISOString().split('T')[0] + '.json';
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
+
+function restoreData(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const imported = JSON.parse(e.target.result);
+            if (!imported.appData || !imported.appData.name || !imported.appData.soberDate) {
+                alert('Invalid backup file. Please select a valid Sober Pledge backup.');
+                return;
+            }
+            if (!confirm('This will replace all your current data with the backup. Are you sure?')) return;
+
+            saveData(imported.appData);
+            if (imported.communityPosts) {
+                saveCommunityPosts(imported.communityPosts);
+            }
+            alert('Data restored successfully!');
+            initApp();
+        } catch (err) {
+            alert('Could not read backup file. Make sure it\'s a valid JSON file.');
+        }
+    };
+    reader.readAsText(file);
+    input.value = '';
+}
+
+function resetAllData() {
+    if (!confirm('This will permanently delete ALL your data including your streak, journal, and settings. This cannot be undone.\n\nAre you sure?')) return;
+    if (!confirm('Really? This deletes everything. Last chance.')) return;
+    localStorage.removeItem('soberpledge-data');
+    localStorage.removeItem('soberpledge-community');
+    localStorage.removeItem('soberpledge-notifs');
+    localStorage.removeItem('soberpledge-last-reminder');
+    location.reload();
 }
 
 // =========================================
