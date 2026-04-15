@@ -1407,6 +1407,17 @@
             <div id="mood-response" style="text-align:center; color: var(--text-muted); font-size: 14px; margin-top: 8px;"></div>
         </div>
 
+        <div class="card" id="daily-quote-card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05)); border-color: rgba(99, 102, 241, 0.15);">
+            <div class="section-title" style="display:flex; align-items:center; gap:6px;">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/></svg>
+                Daily Inspiration
+            </div>
+            <div id="daily-quote" style="font-size: 16px; font-style: italic; line-height: 1.6; color: var(--text);"></div>
+            <div id="daily-quote-author" style="font-size: 13px; color: var(--accent); margin-top: 8px; font-weight: 600;"></div>
+        </div>
+
+        <div id="health-timeline-card"></div>
+
         <div class="card">
             <div class="section-title">Milestones</div>
             <div id="milestones"></div>
@@ -1671,6 +1682,17 @@
             <div class="badge-grid" id="badge-grid"></div>
         </div>
 
+        <div class="card" style="margin-top: 16px; cursor:pointer; display:flex; align-items:center; gap:16px;" onclick="showScreen('vision')">
+            <div style="width:48px;height:48px;border-radius:14px;background:var(--gradient-green);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div style="flex:1;">
+                <div style="font-weight:600;">Vision Board</div>
+                <div style="font-size:13px;color:var(--text-muted);">Track your savings goals and dreams</div>
+            </div>
+            <div style="color:var(--text-muted);font-size:20px;">›</div>
+        </div>
+
         <div class="card" style="margin-top: 16px;">
             <div class="section-title">Share Your Journey</div>
             <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 16px;">Connect your Instagram so others on Sober Pledge can follow your journey and cheer you on.</p>
@@ -1886,6 +1908,10 @@ function initApp() {
     if (todayMood) {
         document.querySelector(`.mood-btn[data-mood="${todayMood.mood}"]`)?.classList.add('selected');
     }
+
+    // Daily quote & health
+    renderDailyQuote();
+    renderHealthTimeline();
 
     // Milestones
     renderMilestones(streakDays);
@@ -2642,6 +2668,116 @@ function renderWhyReminder() {
                 <div class="why-reminder-text">${escapeHtml(reason.text)}</div>
             </div>
         </div>`;
+}
+
+// =========================================
+// DAILY QUOTES
+// =========================================
+const dailyQuotes = [
+    { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
+    { text: "Recovery is not for people who need it. It's for people who want it.", author: "Unknown" },
+    { text: "One day at a time. That's all we have to live. We don't have to live yesterday, and we don't have to live tomorrow.", author: "Charlie Brown" },
+    { text: "Fall seven times, stand up eight.", author: "Japanese Proverb" },
+    { text: "You don't have to see the whole staircase, just take the first step.", author: "Martin Luther King Jr." },
+    { text: "The only person you are destined to become is the person you decide to be.", author: "Ralph Waldo Emerson" },
+    { text: "Strength does not come from winning. Your struggles develop your strengths.", author: "Arnold Schwarzenegger" },
+    { text: "Every morning we are born again. What we do today is what matters most.", author: "Buddha" },
+    { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+    { text: "The greatest glory in living lies not in never falling, but in rising every time we fall.", author: "Nelson Mandela" },
+    { text: "You are allowed to be both a masterpiece and a work in progress simultaneously.", author: "Sophia Bush" },
+    { text: "What lies behind us and what lies before us are tiny matters compared to what lies within us.", author: "Ralph Waldo Emerson" },
+    { text: "Courage isn't having the strength to go on — it is going on when you don't have strength.", author: "Napoleon Bonaparte" },
+    { text: "The secret of change is to focus all of your energy not on fighting the old, but on building the new.", author: "Socrates" },
+    { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+    { text: "Your present circumstances don't determine where you can go; they merely determine where you start.", author: "Nido Qubein" },
+    { text: "Sometimes the smallest step in the right direction ends up being the biggest step of your life.", author: "Naeem Callaway" },
+    { text: "Nothing is impossible. The word itself says 'I'm possible'.", author: "Audrey Hepburn" },
+    { text: "Rock bottom became the solid foundation on which I rebuilt my life.", author: "J.K. Rowling" },
+    { text: "The only way out is through.", author: "Robert Frost" },
+    { text: "Be gentle with yourself. You're doing the best you can.", author: "Unknown" },
+    { text: "Sobriety was the greatest gift I ever gave myself.", author: "Rob Lowe" },
+    { text: "I understood myself only after I destroyed myself. And only in the process of fixing myself, did I know who I really was.", author: "Sade Andria Zabala" },
+    { text: "You were never created to live depressed, defeated, guilty, condemned, ashamed or unworthy. You were created to be victorious.", author: "Joel Osteen" },
+    { text: "The man who moves a mountain begins by carrying away small stones.", author: "Confucius" },
+    { text: "Healing is not linear.", author: "Unknown" },
+    { text: "Freedom is what you do with what's been done to you.", author: "Jean-Paul Sartre" },
+    { text: "You are not your addiction. You are not your past. You are your potential.", author: "Unknown" },
+    { text: "I am not what happened to me. I am what I choose to become.", author: "Carl Jung" },
+    { text: "Progress, not perfection.", author: "Unknown" },
+    { text: "The chains of habit are too light to be felt until they are too heavy to be broken.", author: "Samuel Johnson" },
+];
+
+function renderDailyQuote() {
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    const quote = dailyQuotes[dayOfYear % dailyQuotes.length];
+    const quoteEl = document.getElementById('daily-quote');
+    const authorEl = document.getElementById('daily-quote-author');
+    if (quoteEl) quoteEl.textContent = '"' + quote.text + '"';
+    if (authorEl) authorEl.textContent = '— ' + quote.author;
+}
+
+// =========================================
+// HEALTH TIMELINE
+// =========================================
+function renderHealthTimeline() {
+    const data = getData();
+    if (!data) return;
+    const container = document.getElementById('health-timeline-card');
+    if (!container) return;
+
+    const streakDays = getStreakDays(data);
+    const streakHours = streakDays * 24;
+
+    const milestones = [
+        { hours: 8, title: 'Blood sugar normalising', desc: 'Your blood sugar levels begin to stabilise', icon: '🩸' },
+        { hours: 24, title: 'Blood pressure dropping', desc: 'Heart rate and blood pressure start improving', icon: '❤️' },
+        { hours: 48, title: 'Toxins clearing', desc: 'Your body starts clearing alcohol toxins', icon: '✨' },
+        { hours: 72, title: 'Better sleep starting', desc: 'Sleep quality begins to significantly improve', icon: '😴' },
+        { hours: 168, title: 'Liver recovery begins', desc: 'Your liver starts to repair and reduce fat buildup', icon: '🫁' },
+        { hours: 336, title: 'Skin improving', desc: 'Better hydration means clearer, healthier skin', icon: '🌟' },
+        { hours: 720, title: 'Immune system boosted', desc: 'Your immune system is noticeably stronger', icon: '🛡️' },
+        { hours: 2160, title: 'Brain chemistry rebalancing', desc: 'Neurotransmitters normalise, mood stabilises', icon: '🧠' },
+        { hours: 4380, title: 'Liver fully healed', desc: 'Significant liver regeneration has occurred', icon: '💪' },
+        { hours: 8760, title: 'Total transformation', desc: 'Dramatically reduced risk of heart disease and cancer', icon: '👑' },
+    ];
+
+    // Find the next upcoming milestone and the most recent achieved
+    const achieved = milestones.filter(m => streakHours >= m.hours);
+    const upcoming = milestones.find(m => streakHours < m.hours);
+
+    let html = `<div class="card">
+        <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--green);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Your Body Is Healing
+        </div>`;
+
+    // Show last 2 achieved + next upcoming
+    const showMilestones = [];
+    if (achieved.length > 0) showMilestones.push(...achieved.slice(-2));
+    if (upcoming) showMilestones.push(upcoming);
+
+    showMilestones.forEach(m => {
+        const done = streakHours >= m.hours;
+        const pct = done ? 100 : Math.min(99, Math.round((streakHours / m.hours) * 100));
+        const timeLabel = m.hours < 24 ? m.hours + 'h' : Math.round(m.hours / 24) + ' days';
+
+        html += `<div class="milestone ${done ? 'milestone-earned' : ''}" style="opacity:${done ? 1 : 0.7}">
+            <div class="milestone-icon">${m.icon}</div>
+            <div style="flex:1;">
+                <div class="milestone-name">${m.title}</div>
+                <div class="milestone-desc">${m.desc}</div>
+                <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+                    <div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+                        <div style="width:${pct}%;height:100%;background:${done ? 'var(--green)' : 'var(--accent)'};border-radius:2px;transition:width 0.5s;"></div>
+                    </div>
+                    <span style="font-size:11px;color:${done ? 'var(--green)' : 'var(--text-muted)'};white-space:nowrap;">${done ? 'Complete' : pct + '% — ' + timeLabel}</span>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
 }
 
 // =========================================
