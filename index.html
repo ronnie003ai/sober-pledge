@@ -1253,6 +1253,56 @@
             gap: 12px;
         }
 
+        /* Trigger Tracker */
+        .trigger-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .trigger-btn {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .trigger-btn:hover, .trigger-btn.selected {
+            border-color: var(--orange);
+            color: var(--text);
+            background: rgba(245, 158, 11, 0.1);
+        }
+        .trigger-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .trigger-bar-label {
+            font-size: 13px;
+            min-width: 80px;
+            color: var(--text-muted);
+        }
+        .trigger-bar-fill {
+            height: 20px;
+            border-radius: 4px;
+            background: var(--gradient-warm);
+            transition: width 0.5s ease;
+            min-width: 4px;
+        }
+        .trigger-bar-count {
+            font-size: 12px;
+            color: var(--text-muted);
+            min-width: 20px;
+        }
+
         /* Meditation */
         .med-dur-btn.active, .med-sound-btn.active {
             background: var(--gradient-green) !important;
@@ -1483,6 +1533,14 @@
             </div>
         </div>
 
+        <div class="card" id="weekly-recap-card" style="display:none; background:linear-gradient(135deg, rgba(99,102,241,0.06), rgba(16,185,129,0.04)); border-color:rgba(99,102,241,0.12);">
+            <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                This Week
+            </div>
+            <div id="weekly-recap-content" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;"></div>
+        </div>
+
         <div class="card">
             <div class="section-title">How are you feeling?</div>
             <div class="mood-grid">
@@ -1633,6 +1691,38 @@
             <div style="margin-top: 16px;">
                 <button class="btn btn-outline btn-small" onclick="showScreen('why')">Edit My Reasons</button>
             </div>
+
+            <!-- Trigger Tracker -->
+            <div class="card" style="margin-top:20px; text-align:left;">
+                <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--orange);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    Log a Trigger
+                </div>
+                <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">What's triggering you right now? Tracking patterns helps you prepare for next time.</p>
+                <div class="trigger-grid" id="trigger-buttons">
+                    <button class="trigger-btn" onclick="toggleTrigger(this,'stress')">😰 Stress</button>
+                    <button class="trigger-btn" onclick="toggleTrigger(this,'boredom')">😑 Boredom</button>
+                    <button class="trigger-btn" onclick="toggleTrigger(this,'social')">🍻 Social pressure</button>
+                    <button class="trigger-btn" onclick="toggleTrigger(this,'lonely')">😔 Loneliness</button>
+                    <button class="trigger-btn" onclick="toggleTrigger(this,'celebration')">🎉 Celebration</button>
+                    <button class="trigger-btn" onclick="toggleTrigger(this,'anger')">😤 Anger</button>
+                    <button class="trigger-btn" onclick="toggleTrigger(this,'sadness')">😢 Sadness</button>
+                    <button class="trigger-btn" onclick="toggleTrigger(this,'habit')">🔁 Habit/routine</button>
+                    <button class="trigger-btn" onclick="toggleTrigger(this,'tired')">😴 Tiredness</button>
+                    <button class="trigger-btn" onclick="toggleTrigger(this,'weekend')">📅 Weekend</button>
+                    <button class="trigger-btn" onclick="toggleTrigger(this,'work')">💼 Work</button>
+                    <button class="trigger-btn" onclick="toggleTrigger(this,'relationship')">💔 Relationship</button>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                    <input type="text" class="form-input" id="trigger-note" placeholder="Add a note (optional)" style="flex:1;font-size:13px;padding:10px 14px;">
+                    <button class="btn btn-small" style="background:var(--gradient-warm);" onclick="saveTriggerLog()">Log</button>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:12px; text-align:left;">
+                <div class="section-title">Your Trigger Patterns</div>
+                <div id="trigger-patterns"></div>
+            </div>
         </div>
 
         <!-- Meditation -->
@@ -1735,6 +1825,8 @@
         <div class="savings-summary">
             <div class="savings-total" id="vision-savings">$0</div>
             <div class="savings-label">Total saved by not drinking</div>
+            <div id="savings-breakdown" style="margin-top:16px; display:grid; grid-template-columns:1fr 1fr; gap:8px; text-align:center;"></div>
+            <div id="savings-projection" style="margin-top:12px; font-size:13px; color:var(--text-muted);"></div>
         </div>
 
         <div class="card">
@@ -2001,12 +2093,52 @@
 
 <!-- Log Drink Modal -->
 <div class="modal-overlay" id="drink-modal">
-    <div class="modal">
-        <h2>Log a Drink</h2>
-        <p>It's okay — progress isn't always a straight line. Logging this takes courage. Would you like to record this and reset your counter?</p>
-        <div class="modal-btns">
-            <button class="btn btn-outline" onclick="closeDrinkModal()">Cancel</button>
-            <button class="btn btn-danger" onclick="confirmDrink()">Yes, Log It</button>
+    <div class="modal" style="text-align:left; max-width:420px;">
+        <!-- Step 1: Acknowledgement -->
+        <div id="relapse-step-1">
+            <div style="text-align:center; margin-bottom:16px;">
+                <div style="font-size:36px; margin-bottom:8px;">💛</div>
+                <h2 style="margin-bottom:8px;">It's okay.</h2>
+            </div>
+            <p style="line-height:1.7; font-size:15px;">A slip doesn't erase your progress. Every sober day you had still counts. Every pledge you took still mattered.</p>
+            <p style="line-height:1.7; font-size:15px; margin-top:12px;">The fact that you're here, logging this honestly instead of hiding from it — that takes real courage.</p>
+            <div class="modal-btns" style="margin-top:20px;">
+                <button class="btn btn-outline" onclick="closeDrinkModal()">I didn't drink</button>
+                <button class="btn" onclick="relapseStep(2)">Continue</button>
+            </div>
+        </div>
+
+        <!-- Step 2: What triggered it -->
+        <div id="relapse-step-2" style="display:none;">
+            <h2 style="margin-bottom:8px;">What happened?</h2>
+            <p style="color:var(--text-muted); font-size:14px; margin-bottom:16px;">Understanding what led to this helps you prepare next time. No judgement.</p>
+            <div class="trigger-grid" id="relapse-triggers">
+                <button class="trigger-btn" onclick="toggleRelapseTrigger(this,'stress')">😰 Stress</button>
+                <button class="trigger-btn" onclick="toggleRelapseTrigger(this,'social')">🍻 Social</button>
+                <button class="trigger-btn" onclick="toggleRelapseTrigger(this,'lonely')">😔 Lonely</button>
+                <button class="trigger-btn" onclick="toggleRelapseTrigger(this,'celebration')">🎉 Celebration</button>
+                <button class="trigger-btn" onclick="toggleRelapseTrigger(this,'sadness')">😢 Sadness</button>
+                <button class="trigger-btn" onclick="toggleRelapseTrigger(this,'habit')">🔁 Habit</button>
+                <button class="trigger-btn" onclick="toggleRelapseTrigger(this,'anger')">😤 Anger</button>
+                <button class="trigger-btn" onclick="toggleRelapseTrigger(this,'boredom')">😑 Boredom</button>
+            </div>
+            <textarea class="review-textarea" id="relapse-notes" placeholder="Want to write about what happened? (optional)" style="margin-top:12px;min-height:60px;"></textarea>
+            <div class="modal-btns" style="margin-top:16px;">
+                <button class="btn btn-outline" onclick="relapseStep(1)">Back</button>
+                <button class="btn" onclick="relapseStep(3)">Continue</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Reset with compassion -->
+        <div id="relapse-step-3" style="display:none; text-align:center;">
+            <div style="font-size:36px; margin-bottom:8px;">🌱</div>
+            <h2 style="margin-bottom:8px;">Fresh start</h2>
+            <p style="color:var(--text-muted); font-size:15px; line-height:1.6; margin-bottom:8px;">Your previous streak of <strong id="relapse-prev-streak" style="color:var(--accent);"></strong> is saved in your history. That progress is real and it's yours forever.</p>
+            <p style="color:var(--text-muted); font-size:15px; line-height:1.6; margin-bottom:20px;">Many people who achieve long-term sobriety had setbacks along the way. What matters is that you're choosing to try again.</p>
+            <div class="modal-btns" style="justify-content:center;">
+                <button class="btn btn-green" onclick="confirmDrink()">Reset My Counter</button>
+            </div>
+            <button class="btn btn-outline btn-small" onclick="closeDrinkModal()" style="margin-top:12px;">Cancel</button>
         </div>
     </div>
 </div>
@@ -2183,6 +2315,9 @@ function initApp() {
     renderDailyQuote();
     renderHealthTimeline();
 
+    // Weekly recap
+    renderWeeklyRecap();
+
     // Charts
     renderMoodChart();
     renderPledgeWeekDots();
@@ -2195,6 +2330,7 @@ function initApp() {
     renderCommunityFeed();
     renderBadges();
     updateThemeUI();
+    renderTriggerPatterns();
     renderSOSContacts();
     renderSOSUrge();
     updateNotifUI();
@@ -2214,18 +2350,78 @@ function showScreen(name) {
 // =========================================
 // CHECK-IN & DRINK LOGGING
 // =========================================
+let relapseTriggers = [];
+
 function openDrinkModal() {
+    relapseTriggers = [];
+    document.querySelectorAll('#relapse-triggers .trigger-btn').forEach(b => b.classList.remove('selected'));
+    relapseStep(1);
     document.getElementById('drink-modal').classList.add('active');
 }
 function closeDrinkModal() {
     document.getElementById('drink-modal').classList.remove('active');
 }
+function relapseStep(step) {
+    document.getElementById('relapse-step-1').style.display = step === 1 ? 'block' : 'none';
+    document.getElementById('relapse-step-2').style.display = step === 2 ? 'block' : 'none';
+    document.getElementById('relapse-step-3').style.display = step === 3 ? 'block' : 'none';
+
+    if (step === 3) {
+        const data = getData();
+        const prevStreak = getStreakDays(data);
+        document.getElementById('relapse-prev-streak').textContent = prevStreak + ' day' + (prevStreak !== 1 ? 's' : '');
+    }
+}
+function toggleRelapseTrigger(btn, trigger) {
+    btn.classList.toggle('selected');
+    if (relapseTriggers.includes(trigger)) {
+        relapseTriggers = relapseTriggers.filter(t => t !== trigger);
+    } else {
+        relapseTriggers.push(trigger);
+    }
+}
 function confirmDrink() {
     const data = getData();
     const today = new Date().toISOString().split('T')[0];
+    const prevStreak = getStreakDays(data);
+    const notes = document.getElementById('relapse-notes')?.value?.trim() || '';
+
+    // Save relapse record with context
+    if (!data.relapses) data.relapses = [];
+    data.relapses.push({
+        date: today,
+        prevStreak: prevStreak,
+        triggers: [...relapseTriggers],
+        notes: notes
+    });
+
+    // Also log triggers for pattern analysis
+    if (relapseTriggers.length && !data.triggers) data.triggers = [];
+    if (relapseTriggers.length) {
+        data.triggers.push({
+            triggers: [...relapseTriggers],
+            note: 'Relapse: ' + notes,
+            date: new Date().toISOString(),
+            timeOfDay: new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'
+        });
+    }
+
     data.drinks.push(today);
     saveData(data);
+
+    // Log as journal entry
+    if (!data.journal) data.journal = [];
+    data.journal.unshift({
+        text: 'Had a setback after ' + prevStreak + ' days. ' + (notes ? notes : 'Starting fresh.'),
+        tag: 'reflection',
+        photo: null,
+        date: new Date().toISOString()
+    });
+    data.wins = data.journal;
+    saveData(data);
+
     closeDrinkModal();
+    relapseTriggers = [];
     initApp();
 }
 
@@ -2766,6 +2962,167 @@ function getChatResponse(text) {
 
     const defaults = chatResponses.default;
     return defaults[Math.floor(Math.random() * defaults.length)];
+}
+
+// =========================================
+// WEEKLY RECAP
+// =========================================
+function renderWeeklyRecap() {
+    const data = getData();
+    if (!data) return;
+    const card = document.getElementById('weekly-recap-card');
+    const content = document.getElementById('weekly-recap-content');
+    if (!card || !content) return;
+
+    const today = new Date();
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const weekAgoStr = weekAgo.toISOString().split('T')[0];
+
+    // Pledges this week
+    const pledgesThisWeek = (data.pledges || []).filter(p => p.date >= weekAgoStr).length;
+
+    // Journal entries this week
+    const journalThisWeek = (data.journal || []).filter(j => j.date >= weekAgo.toISOString()).length;
+
+    // Money saved this week
+    const dailySpend = (data.weeklySpend || 70) / 7;
+    const moneySavedThisWeek = Math.round(Math.min(7, getStreakDays(data)) * dailySpend);
+    const curr = getCurrencySymbol(data);
+
+    // Mood trend
+    const moodValues = { great: 5, good: 4, okay: 3, tough: 2, struggling: 1 };
+    const weekMoods = (data.moods || []).filter(m => m.date >= weekAgoStr);
+    let moodTrend = '';
+    if (weekMoods.length >= 2) {
+        const first = moodValues[weekMoods[0].mood] || 3;
+        const last = moodValues[weekMoods[weekMoods.length - 1].mood] || 3;
+        moodTrend = last > first ? '↑ Improving' : last < first ? '↓ Dipping' : '→ Steady';
+    }
+
+    // Only show if there's some activity
+    if (pledgesThisWeek === 0 && journalThisWeek === 0 && weekMoods.length === 0) {
+        card.style.display = 'none';
+        return;
+    }
+    card.style.display = 'block';
+
+    content.innerHTML = `
+        <div style="text-align:center;padding:8px;">
+            <div style="font-size:22px;font-weight:700;color:var(--accent);">${pledgesThisWeek}/7</div>
+            <div style="font-size:11px;color:var(--text-muted);">Pledges</div>
+        </div>
+        <div style="text-align:center;padding:8px;">
+            <div style="font-size:22px;font-weight:700;color:var(--green);">${curr}${moneySavedThisWeek.toLocaleString()}</div>
+            <div style="font-size:11px;color:var(--text-muted);">Saved</div>
+        </div>
+        <div style="text-align:center;padding:8px;">
+            <div style="font-size:22px;font-weight:700;color:var(--orange);">${journalThisWeek}</div>
+            <div style="font-size:11px;color:var(--text-muted);">Journal</div>
+        </div>`;
+}
+
+// =========================================
+// TRIGGER TRACKER
+// =========================================
+let selectedTriggers = [];
+
+function toggleTrigger(btn, trigger) {
+    btn.classList.toggle('selected');
+    if (selectedTriggers.includes(trigger)) {
+        selectedTriggers = selectedTriggers.filter(t => t !== trigger);
+    } else {
+        selectedTriggers.push(trigger);
+    }
+}
+
+function saveTriggerLog() {
+    if (!selectedTriggers.length) { alert('Select at least one trigger.'); return; }
+    const data = getData();
+    if (!data.triggers) data.triggers = [];
+    const note = document.getElementById('trigger-note').value.trim();
+    const hour = new Date().getHours();
+
+    data.triggers.push({
+        triggers: [...selectedTriggers],
+        note: note,
+        date: new Date().toISOString(),
+        timeOfDay: hour < 6 ? 'night' : hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : hour < 21 ? 'evening' : 'night'
+    });
+    saveData(data);
+
+    // Reset
+    selectedTriggers = [];
+    document.querySelectorAll('.trigger-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('trigger-note').value = '';
+    renderTriggerPatterns();
+
+    // Show confirmation
+    alert('Trigger logged. Understanding your patterns is a powerful tool in recovery.');
+}
+
+function renderTriggerPatterns() {
+    const data = getData();
+    if (!data) return;
+    const container = document.getElementById('trigger-patterns');
+    if (!container) return;
+    if (!data.triggers || !data.triggers.length) {
+        container.innerHTML = '<div style="font-size:13px;color:var(--text-muted);text-align:center;padding:12px 0;">No triggers logged yet. Start tracking to see your patterns.</div>';
+        return;
+    }
+
+    // Count triggers
+    const counts = {};
+    const timeCounts = { morning: 0, afternoon: 0, evening: 0, night: 0 };
+    data.triggers.forEach(t => {
+        t.triggers.forEach(tr => {
+            counts[tr] = (counts[tr] || 0) + 1;
+        });
+        timeCounts[t.timeOfDay] = (timeCounts[t.timeOfDay] || 0) + 1;
+    });
+
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const max = sorted[0] ? sorted[0][1] : 1;
+    const labels = {
+        stress: '😰 Stress', boredom: '😑 Boredom', social: '🍻 Social',
+        lonely: '😔 Lonely', celebration: '🎉 Celebration', anger: '😤 Anger',
+        sadness: '😢 Sadness', habit: '🔁 Habit', tired: '😴 Tired',
+        weekend: '📅 Weekend', work: '💼 Work', relationship: '💔 Relationship'
+    };
+
+    let html = '<div style="margin-bottom:16px;">';
+    sorted.forEach(([trigger, count]) => {
+        const pct = Math.round((count / max) * 100);
+        html += `<div class="trigger-bar">
+            <div class="trigger-bar-label">${labels[trigger] || trigger}</div>
+            <div style="flex:1;background:var(--border);border-radius:4px;height:20px;overflow:hidden;">
+                <div class="trigger-bar-fill" style="width:${pct}%;"></div>
+            </div>
+            <div class="trigger-bar-count">${count}</div>
+        </div>`;
+    });
+    html += '</div>';
+
+    // Time of day breakdown
+    const totalTime = Object.values(timeCounts).reduce((a, b) => a + b, 0);
+    if (totalTime > 0) {
+        html += '<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">When urges hit most:</div>';
+        html += '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+        const timeLabels = { morning: '🌅 Morning', afternoon: '☀️ Afternoon', evening: '🌆 Evening', night: '🌙 Night' };
+        Object.entries(timeCounts).filter(([,v]) => v > 0).sort((a,b) => b[1] - a[1]).forEach(([time, count]) => {
+            const pct = Math.round((count / totalTime) * 100);
+            html += `<div style="text-align:center;flex:1;min-width:60px;padding:10px 6px;background:var(--bg);border-radius:10px;border:1px solid var(--border);">
+                <div style="font-size:11px;">${timeLabels[time]}</div>
+                <div style="font-size:18px;font-weight:700;color:var(--orange);margin-top:4px;">${pct}%</div>
+            </div>`;
+        });
+        html += '</div>';
+    }
+
+    // Total logged
+    html += `<div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-muted);">${data.triggers.length} urge${data.triggers.length > 1 ? 's' : ''} logged</div>`;
+
+    container.innerHTML = html;
 }
 
 // =========================================
@@ -4148,6 +4505,40 @@ function renderVisionBoard() {
     const saved = getMoneySaved(data);
     const vCurr = getCurrencySymbol(data);
     document.getElementById('vision-savings').innerHTML = vCurr + saved.toLocaleString();
+
+    // Savings breakdown
+    const dailySpend = (data.weeklySpend || 70) / 7;
+    const weeklySpend = data.weeklySpend || 70;
+    const monthlySpend = Math.round(weeklySpend * 4.33);
+    const yearlySpend = Math.round(weeklySpend * 52);
+
+    const breakdownEl = document.getElementById('savings-breakdown');
+    if (breakdownEl) {
+        breakdownEl.innerHTML = `
+            <div style="padding:10px;background:rgba(16,185,129,0.08);border-radius:10px;">
+                <div style="font-size:18px;font-weight:700;color:var(--green);">${vCurr}${Math.round(dailySpend).toLocaleString()}</div>
+                <div style="font-size:11px;color:var(--text-muted);">per day</div>
+            </div>
+            <div style="padding:10px;background:rgba(16,185,129,0.08);border-radius:10px;">
+                <div style="font-size:18px;font-weight:700;color:var(--green);">${vCurr}${weeklySpend.toLocaleString()}</div>
+                <div style="font-size:11px;color:var(--text-muted);">per week</div>
+            </div>
+            <div style="padding:10px;background:rgba(16,185,129,0.08);border-radius:10px;">
+                <div style="font-size:18px;font-weight:700;color:var(--green);">${vCurr}${monthlySpend.toLocaleString()}</div>
+                <div style="font-size:11px;color:var(--text-muted);">per month</div>
+            </div>
+            <div style="padding:10px;background:rgba(16,185,129,0.08);border-radius:10px;">
+                <div style="font-size:18px;font-weight:700;color:var(--green);">${vCurr}${yearlySpend.toLocaleString()}</div>
+                <div style="font-size:11px;color:var(--text-muted);">per year</div>
+            </div>`;
+    }
+
+    const projectionEl = document.getElementById('savings-projection');
+    if (projectionEl) {
+        const fiveYear = yearlySpend * 5;
+        const tenYear = yearlySpend * 10;
+        projectionEl.innerHTML = 'In 5 years: <strong style="color:var(--green);">' + vCurr + fiveYear.toLocaleString() + '</strong> · In 10 years: <strong style="color:var(--green);">' + vCurr + tenYear.toLocaleString() + '</strong>';
+    }
 
     const container = document.getElementById('vision-list');
     if (!data.visionBoard.length) {
