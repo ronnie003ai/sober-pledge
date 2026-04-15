@@ -3544,21 +3544,53 @@ function renderHealthTimeline() {
     const streakHours = streakDays * 24;
 
     const milestones = [
-        { hours: 8, title: 'Blood sugar normalising', desc: 'Your blood sugar levels begin to stabilise', icon: '🩸' },
-        { hours: 24, title: 'Blood pressure dropping', desc: 'Heart rate and blood pressure start improving', icon: '❤️' },
-        { hours: 48, title: 'Toxins clearing', desc: 'Your body starts clearing alcohol toxins', icon: '✨' },
-        { hours: 72, title: 'Better sleep starting', desc: 'Sleep quality begins to significantly improve', icon: '😴' },
-        { hours: 168, title: 'Liver recovery begins', desc: 'Your liver starts to repair and reduce fat buildup', icon: '🫁' },
-        { hours: 336, title: 'Skin improving', desc: 'Better hydration means clearer, healthier skin', icon: '🌟' },
-        { hours: 720, title: 'Immune system boosted', desc: 'Your immune system is noticeably stronger', icon: '🛡️' },
-        { hours: 2160, title: 'Brain chemistry rebalancing', desc: 'Neurotransmitters normalise, mood stabilises', icon: '🧠' },
-        { hours: 4380, title: 'Liver fully healed', desc: 'Significant liver regeneration has occurred', icon: '💪' },
-        { hours: 8760, title: 'Total transformation', desc: 'Dramatically reduced risk of heart disease and cancer', icon: '👑' },
+        // First 24 hours
+        { hours: 1, title: 'Alcohol metabolism begins', desc: 'Your liver is working to break down the last alcohol in your system at roughly one unit per hour', icon: '⚡' },
+        { hours: 6, title: 'Withdrawal window opens', desc: 'If you were a heavy drinker, mild symptoms like anxiety, shaking and sweating may begin. This is normal — your nervous system is recalibrating', icon: '🌡️' },
+        { hours: 8, title: 'Blood sugar stabilising', desc: 'Alcohol disrupts blood sugar regulation. Your levels are starting to normalise, reducing shakiness and brain fog', icon: '🩸' },
+        { hours: 12, title: 'Acetaldehyde clearing', desc: 'The toxic byproduct of alcohol (what causes hangovers) is being flushed from your system', icon: '✨' },
+        { hours: 24, title: 'Blood pressure improving', desc: 'Your heart rate and blood pressure are already beginning to drop towards normal. Risk of alcohol-related cardiac events decreasing', icon: '❤️' },
+
+        // Days 2-3
+        { hours: 48, title: 'Alcohol fully cleared', desc: 'All alcohol and its metabolites have left your bloodstream. Your body is now running completely clean', icon: '💧' },
+        { hours: 72, title: 'Withdrawal symptoms peaking', desc: 'If you had withdrawal symptoms, they typically peak now then rapidly improve. The worst is behind you. Cravings for sugar may increase as your brain seeks dopamine — this is temporary', icon: '🏔️' },
+
+        // Week 1
+        { hours: 120, title: 'Dopamine recalibration starting', desc: 'Your brain\'s reward system is beginning to adjust. Cravings are still strong but starting to become less constant. Urges typically last 15-20 minutes — ride them out', icon: '⚙️' },
+        { hours: 168, title: 'Liver shedding fat', desc: 'Your liver has already begun reducing fat buildup (steatosis). Liver fat can decrease by up to 15% in the first week alone. Liver enzymes are normalising', icon: '🔬' },
+        { hours: 168, title: 'Sleep improving', desc: 'REM rebound is occurring — you may have vivid dreams as your brain catches up on the deep sleep alcohol was suppressing. Actual sleep quality is starting to improve', icon: '😴' },
+
+        // Week 2
+        { hours: 240, title: 'Stomach lining healing', desc: 'Gastritis and acid reflux are reducing. Your stomach lining is repairing itself, improving digestion and reducing nausea', icon: '🫀' },
+        { hours: 336, title: 'Skin rehydrating', desc: 'Alcohol is a diuretic that dehydrates your skin. After two weeks, hydration is restoring — you\'ll notice clearer, less puffy skin, especially around the face and eyes', icon: '💎' },
+        { hours: 336, title: 'Brain fog lifting', desc: 'Cognitive function is measurably improving. Concentration, short-term memory and decision-making are sharper. You\'re thinking more clearly', icon: '💡' },
+        { hours: 336, title: 'Cravings reducing', desc: 'Urges are becoming less frequent and less intense. Your brain is learning to produce dopamine naturally again. When cravings hit, they pass faster', icon: '📉' },
+
+        // Month 1
+        { hours: 504, title: 'Blood pressure normalised', desc: 'For most people, blood pressure has returned to a healthy baseline. Your cardiovascular system is significantly less strained', icon: '❤️‍🩹' },
+        { hours: 720, title: 'Immune system strengthening', desc: 'Alcohol suppresses immune function. After a month, your white blood cell count is improving and you\'re better equipped to fight infections', icon: '🛡️' },
+        { hours: 720, title: 'Mood stabilising', desc: 'Anxiety and depressive symptoms caused by alcohol are reducing significantly. Serotonin and GABA levels are rebalancing. You may notice you feel calmer and more emotionally stable', icon: '☀️' },
+
+        // Month 2-3
+        { hours: 1344, title: 'Sleep fully restored', desc: 'Your sleep architecture has normalised. You\'re spending proper time in deep sleep and REM. Waking feeling genuinely rested — something alcohol prevented even if you thought it helped you sleep', icon: '🌙' },
+        { hours: 1344, title: 'Weight changes visible', desc: 'Without the empty calories from alcohol (a bottle of wine = 600 calories), body composition is changing. Belly fat in particular may be reducing', icon: '⚖️' },
+        { hours: 2160, title: 'Brain chemistry rebalanced', desc: 'Dopamine receptors have significantly recovered. Natural pleasures — food, exercise, conversation, music — feel genuinely enjoyable again. GABA and glutamate levels normalised, reducing baseline anxiety', icon: '🧠' },
+        { hours: 2160, title: 'Urges are manageable', desc: 'Cravings are now occasional rather than constant. When they come, you have the mental tools and clarity to recognise them as temporary. Your default is no longer wanting a drink', icon: '🎯' },
+
+        // 6 months
+        { hours: 4380, title: 'Liver significantly healed', desc: 'If you had fatty liver disease (and most heavy drinkers do), it has likely fully reversed. Liver function tests should show normal results. Your liver is one of the most regenerative organs in the body', icon: '💚' },
+        { hours: 4380, title: 'Relationships healing', desc: 'Six months of showing up sober, present and reliable. Trust is rebuilding. Your emotional regulation is dramatically improved — fewer arguments, more genuine connection', icon: '🤝' },
+
+        // 1 year
+        { hours: 8760, title: 'Heart disease risk reduced', desc: 'Your risk of alcohol-related heart disease has dropped significantly. Heart muscle function may have improved if there was alcohol-related cardiomyopathy', icon: '❤️' },
+        { hours: 8760, title: 'Cancer risk decreasing', desc: 'Alcohol is a Group 1 carcinogen. After a year, your risk of mouth, throat, liver and breast cancer is measurably lower and continues to drop', icon: '🔬' },
+        { hours: 8760, title: 'Brain volume recovering', desc: 'Alcohol shrinks the brain — literally. After a year of sobriety, MRI studies show measurable brain volume recovery, particularly in the frontal cortex responsible for decision-making', icon: '🧠' },
+        { hours: 8760, title: 'You are transformed', desc: 'Physically, mentally, emotionally, financially, socially — every dimension of your life has been impacted. You\'re not just sober. You\'re free', icon: '👑' },
     ];
 
     // Find the next upcoming milestone and the most recent achieved
     const achieved = milestones.filter(m => streakHours >= m.hours);
-    const upcoming = milestones.find(m => streakHours < m.hours);
+    const upcoming = milestones.filter(m => streakHours < m.hours);
 
     let html = `<div class="card">
         <div class="section-title" style="display:flex;align-items:center;gap:6px;">
@@ -3566,15 +3598,16 @@ function renderHealthTimeline() {
             Your Body Is Healing
         </div>`;
 
-    // Show last 2 achieved + next upcoming
+    // Show last 2 achieved + next 2 upcoming
     const showMilestones = [];
     if (achieved.length > 0) showMilestones.push(...achieved.slice(-2));
-    if (upcoming) showMilestones.push(upcoming);
+    if (upcoming.length > 0) showMilestones.push(...upcoming.slice(0, 2));
 
     showMilestones.forEach(m => {
         const done = streakHours >= m.hours;
         const pct = done ? 100 : Math.min(99, Math.round((streakHours / m.hours) * 100));
-        const timeLabel = m.hours < 24 ? m.hours + 'h' : Math.round(m.hours / 24) + ' days';
+        const days = Math.round(m.hours / 24);
+        const timeLabel = m.hours < 24 ? m.hours + 'h' : days < 30 ? days + ' days' : days < 365 ? Math.round(days / 30) + ' month' + (Math.round(days / 30) > 1 ? 's' : '') : '1 year';
 
         html += `<div class="milestone ${done ? 'milestone-earned' : ''}" style="opacity:${done ? 1 : 0.7}">
             <div class="milestone-icon">${m.icon}</div>
