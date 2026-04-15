@@ -32,6 +32,62 @@
             --gradient-warm: linear-gradient(135deg, #f59e0b, #ef4444);
         }
 
+        /* Light Theme */
+        [data-theme="light"] {
+            --bg: #f5f5f7;
+            --card: #ffffff;
+            --card-hover: #f0f0f5;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --accent-glow: rgba(99, 102, 241, 0.2);
+            --green: #059669;
+            --green-glow: rgba(5, 150, 105, 0.2);
+            --orange: #d97706;
+            --red: #dc2626;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+        [data-theme="light"] body { background: var(--bg); }
+        [data-theme="light"] .nav {
+            background: rgba(255, 255, 255, 0.95);
+            border-top-color: var(--border);
+        }
+        [data-theme="light"] .streak-card {
+            background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+            border-color: rgba(99, 102, 241, 0.15);
+        }
+        [data-theme="light"] .streak-card::before { opacity: 0.15; }
+        [data-theme="light"] .pledge-card {
+            background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+            border-color: rgba(99, 102, 241, 0.15);
+        }
+        [data-theme="light"] .chat-msg.bot {
+            background: #f1f5f9;
+            border-color: var(--border);
+        }
+        [data-theme="light"] .form-input,
+        [data-theme="light"] .journal-textarea,
+        [data-theme="light"] .community-textarea,
+        [data-theme="light"] .chat-input,
+        [data-theme="light"] .vision-input,
+        [data-theme="light"] .review-textarea {
+            background: #f1f5f9;
+            border-color: var(--border);
+            color: var(--text);
+        }
+        [data-theme="light"] .journal-entry,
+        [data-theme="light"] .milestone-icon,
+        [data-theme="light"] .badge-item {
+            background: #f8fafc;
+        }
+        [data-theme="light"] .modal {
+            background: white;
+        }
+        [data-theme="light"] .fab-chat {
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        }
+
         /* Animations */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInScale { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
@@ -1551,6 +1607,9 @@
                 <button class="btn" onclick="startTetris()">Play Tetris</button>
                 <button class="btn btn-outline" onclick="showScreen('chat')">Talk to Someone</button>
             </div>
+
+            <div id="sos-urge-area" style="margin-top:20px;"></div>
+
             <div style="margin-top: 16px;">
                 <button class="btn btn-outline btn-small" onclick="showScreen('why')">Edit My Reasons</button>
             </div>
@@ -1665,6 +1724,20 @@
         </div>
 
         <div class="card" style="margin-top: 16px;">
+            <div class="section-title">Appearance</div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <div style="font-weight:600; font-size:15px;">Theme</div>
+                    <div style="font-size:13px; color:var(--text-muted);">Switch between dark and light mode</div>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-small" id="theme-dark-btn" onclick="setTheme('dark')">Dark</button>
+                    <button class="btn btn-small btn-outline" id="theme-light-btn" onclick="setTheme('light')">Light</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
             <div class="section-title">Spending & Drinking Habits (before sobriety)</div>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">This is used to calculate your savings and drinks avoided.</p>
             <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
@@ -1737,6 +1810,20 @@
                 <button class="btn btn-small" id="notif-btn" onclick="toggleNotifications()">Enable</button>
             </div>
             <div id="notif-status" style="font-size:12px; color:var(--text-muted); margin-top:8px;"></div>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
+            <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--red);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                Emergency Contacts
+            </div>
+            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">People you can reach out to when things get tough. They'll appear in Urge Fighter.</p>
+            <div id="sos-contacts-list"></div>
+            <div style="display:flex; gap:8px; margin-top:10px;">
+                <input type="text" class="form-input" id="sos-name-input" placeholder="Name" style="flex:1;">
+                <input type="tel" class="form-input" id="sos-phone-input" placeholder="Phone number" style="flex:1;">
+                <button class="btn btn-small" onclick="addSOSContact()">Add</button>
+            </div>
         </div>
 
         <div class="card" style="margin-top: 16px; cursor:pointer; display:flex; align-items:center; gap:16px;" onclick="showScreen('vision')">
@@ -2026,6 +2113,9 @@ function initApp() {
     renderVisionBoard();
     renderCommunityFeed();
     renderBadges();
+    updateThemeUI();
+    renderSOSContacts();
+    renderSOSUrge();
     updateNotifUI();
     checkPledgeReminder();
 }
@@ -2441,18 +2531,69 @@ function escapeHtml(str) {
 }
 
 // =========================================
-// CHAT (Supportive pre-built responses)
+// CHAT (Smart supportive chatbot)
 // =========================================
+let chatContext = { lastTopic: null, messageCount: 0, breathingActive: false };
+
 const chatResponses = {
-    lonely: "Feeling lonely is one of the hardest parts. But remember — reaching out right now, even to me, shows real strength. You're not as alone as you feel. Is there someone you trust you could message today?",
-    craving: "Cravings are temporary — they usually peak and pass within 15-20 minutes. Try the Urge Fighter game, drink a glass of water, or go for a short walk. You've beaten cravings before, and you can beat this one too.",
-    stressed: "Stress is a major trigger, and it's smart that you recognise it. Try taking 5 slow, deep breaths right now. In through your nose for 4 seconds, hold for 4, out through your mouth for 6. What's causing the stress?",
-    angry: "It's okay to feel angry. Anger is a valid emotion, and you don't need to numb it. What would help right now — venting more about it, or trying something to shift your focus?",
-    bored: "Boredom is one of the sneakiest triggers. Your brain is used to reaching for a drink to fill the gap. How about trying the Tetris game, going for a walk, or starting a small project you've been putting off?",
-    sad: "I'm sorry you're feeling sad. It takes real courage to sit with difficult emotions instead of reaching for a drink. What you're feeling is valid. Would it help to write about it in your wins — sometimes naming the feeling takes away its power.",
-    happy: "That's wonderful to hear! Savor this feeling — this is what sobriety gives you. Real, genuine happiness that you'll actually remember tomorrow. What's making you feel good?",
-    tempted: "The fact that you're here talking about it instead of giving in shows incredible strength. Remember why you started this journey. The drink will last an hour; the regret will last much longer. Can you try the Urge Fighter game?",
-    relapse: "Hey — a slip doesn't erase your progress. Every sober day you had still counts. What matters most is what you do right now: you came here, you're talking about it, and that means you haven't given up. Ready to start again?",
+    lonely: [
+        "Feeling lonely is one of the hardest parts. But remember — reaching out right now, even to me, shows real strength. You're not as alone as you feel. Is there someone you trust you could message today?",
+        "Loneliness can be really heavy. Have you tried the Community tab? There are people there who understand exactly what you're going through.",
+        "I'm here with you right now. Sometimes loneliness is just our brain lying to us — tell me, what's making you feel this way?"
+    ],
+    craving: [
+        "Cravings are temporary — they usually peak and pass within 15-20 minutes. Try the Urge Fighter game, drink a glass of water, or go for a short walk. You've beaten cravings before.",
+        "I know this feels intense right now, but you're stronger than this craving. Would you like to try a quick breathing exercise? Just say 'breathe' and I'll guide you through one.",
+        "This craving will pass. Remind yourself why you started — check your 'Why I Quit' reasons. Every craving you beat makes the next one weaker."
+    ],
+    stressed: [
+        "Stress is a major trigger, and it's smart that you recognise it. Would you like me to guide you through a breathing exercise? Just say 'breathe'.",
+        "When stress hits, our old brain wants to reach for the easy fix. But you know better now. What specifically is stressing you out? Sometimes just naming it helps.",
+        "You're handling this stress sober — that's already a win. Try this: name 5 things you can see right now. It's a quick grounding trick that really works."
+    ],
+    angry: [
+        "It's okay to feel angry. Anger is a valid emotion, and you don't need to numb it. What would help right now — venting more about it, or trying something to shift your focus?",
+        "Anger used to mean reaching for a drink. Now it means you're actually feeling something real. That's growth. Want to write about it in your journal?",
+        "I hear you. Sometimes anger needs to be felt, not fixed. Take a few deep breaths and let yourself feel it without acting on it. I'm right here."
+    ],
+    bored: [
+        "Boredom is one of the sneakiest triggers. Your brain is used to reaching for a drink to fill the gap. How about the Tetris game, a walk, or a small project?",
+        "Fun fact: boredom is actually your brain healing. It's re-learning how to be stimulated without alcohol. What did you enjoy before drinking took over?",
+        "Boredom is just unused energy. What if you channeled it into something? Write a journal entry, set a new vision board goal, or check in with the community."
+    ],
+    sad: [
+        "I'm sorry you're feeling sad. It takes real courage to sit with difficult emotions instead of reaching for a drink. Would it help to write about it in your journal?",
+        "Sadness is part of healing. You're feeling things you used to numb — that's actually progress, even though it doesn't feel like it right now.",
+        "Be gentle with yourself today. You don't have to be strong every minute. Just don't drink. That's enough. Would a breathing exercise help? Say 'breathe'."
+    ],
+    happy: [
+        "That's wonderful to hear! Savor this feeling — this is what sobriety gives you. Real, genuine happiness that you'll actually remember tomorrow. What's making you feel good?",
+        "You deserve this happiness! These moments are proof that life is better sober. Have you shared this in the Community? Your positivity could lift someone up today.",
+        "This is the real you. Not the dulled, hungover version — the full, present, feeling-everything version. Hold onto this feeling for the tough days."
+    ],
+    tempted: [
+        "The fact that you're here talking about it instead of giving in shows incredible strength. Remember why you started. The drink will last an hour; the regret will last much longer.",
+        "Your brain is playing the highlight reel of drinking — only the 'fun' parts. But remember the full movie: the hangovers, the shame, the promises you broke. You don't want that.",
+        "You've come too far to throw it away now. Look at your streak. Every one of those days took courage. Want to play Tetris until this passes?"
+    ],
+    relapse: [
+        "Hey — a slip doesn't erase your progress. Every sober day you had still counts. What matters most is what you do right now: you came here, and that means you haven't given up. Ready to start again?",
+        "This is not the end. This is a lesson. Many people who build long-term sobriety had setbacks along the way. The difference is they got back up. And here you are, getting back up.",
+        "I'm not going to judge you. Nobody should. What happened happened — now let's focus on right now. Can you pour away any alcohol you have near you? One step at a time."
+    ],
+    breathe: [
+        "Let's do a breathing exercise together. Close your eyes if you can.\n\n🫁 Breathe IN through your nose... 1... 2... 3... 4...\n\n⏸️ HOLD... 1... 2... 3... 4...\n\n💨 Breathe OUT slowly through your mouth... 1... 2... 3... 4... 5... 6...\n\nDo that 3 more times. I'll be right here when you're done. How do you feel?"
+    ],
+    grateful: [
+        "Gratitude is a superpower in recovery. Tell me — what are 3 things you're grateful for right now, no matter how small? Even 'I'm breathing' counts.",
+        "Practising gratitude literally rewires your brain. Try writing 3 things in your journal right now — your future self will thank you.",
+        "That's the mindset that will carry you through. When you focus on what you have instead of what you gave up, sobriety stops feeling like a sacrifice."
+    ],
+    sleep: [
+        "Sleep issues are really common in early sobriety — your brain is recalibrating. Try avoiding screens an hour before bed, keeping a cool room, and having a consistent bedtime.",
+        "If you can't sleep, don't fight it. Get up, write in your journal, or do a breathing exercise. Sleep will come. Your body is healing and adjusting.",
+        "Good sleep is one of the biggest gifts of sobriety. It might not feel like it yet, but most people see major improvements by week 2-3. Hang in there."
+    ],
     default: [
         "I hear you. Tell me more about what you're going through.",
         "That makes sense. How long have you been feeling this way?",
@@ -2460,7 +2601,10 @@ const chatResponses = {
         "You're doing the right thing by talking about it. What do you think would help you most right now?",
         "Remember — every moment you choose sobriety is a victory. Even the hard moments.",
         "It sounds like you're going through a lot. Be gentle with yourself today.",
-        "You've already shown so much strength by being here. What else is on your mind?"
+        "You've already shown so much strength by being here. What else is on your mind?",
+        "Would it help to try a breathing exercise? Just say 'breathe' and I'll guide you through one.",
+        "Have you written in your journal today? Sometimes putting feelings into words takes away their power.",
+        "You know what might help? Check in with the Community tab — you're not the only one going through this."
     ]
 };
 
@@ -2472,32 +2616,70 @@ function sendChat() {
     const container = document.getElementById('chat-messages');
     container.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`;
     input.value = '';
+    chatContext.messageCount++;
 
+    // Typing indicator
+    container.innerHTML += '<div class="chat-msg bot" id="typing-indicator" style="opacity:0.5;">typing...</div>';
+    container.scrollTop = container.scrollHeight;
+
+    const delay = 600 + Math.random() * 800;
     setTimeout(() => {
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) indicator.remove();
+
         const response = getChatResponse(text.toLowerCase());
-        container.innerHTML += `<div class="chat-msg bot">${response}</div>`;
+        container.innerHTML += `<div class="chat-msg bot" style="animation:fadeIn 0.3s ease;">${response}</div>`;
         container.scrollTop = container.scrollHeight;
-    }, 800);
+
+        // After every 5 messages, offer a check-in
+        if (chatContext.messageCount % 5 === 0 && chatContext.messageCount > 0) {
+            setTimeout(() => {
+                container.innerHTML += `<div class="chat-msg bot" style="animation:fadeIn 0.3s ease;">We've been chatting for a bit. How are you feeling now compared to when we started? Better, same, or worse?</div>`;
+                container.scrollTop = container.scrollHeight;
+            }, 1500);
+        }
+    }, delay);
 
     container.scrollTop = container.scrollHeight;
 }
 
 function getChatResponse(text) {
     const keywords = {
-        lonely: ['lonely', 'alone', 'no one', 'nobody', 'isolated'],
+        breathe: ['breathe', 'breathing', 'breath exercise', 'calm down', 'panic'],
+        lonely: ['lonely', 'alone', 'no one', 'nobody', 'isolated', 'no friends'],
         craving: ['craving', 'crave', 'want a drink', 'want to drink', 'thirsty', 'urge'],
-        stressed: ['stress', 'stressed', 'anxious', 'anxiety', 'overwhelm', 'pressure'],
-        angry: ['angry', 'mad', 'furious', 'pissed', 'frustrated', 'rage'],
+        stressed: ['stress', 'stressed', 'anxious', 'anxiety', 'overwhelm', 'pressure', 'worried', 'worry'],
+        angry: ['angry', 'mad', 'furious', 'pissed', 'frustrated', 'rage', 'annoyed'],
         bored: ['bored', 'boring', 'nothing to do', 'restless'],
-        sad: ['sad', 'depressed', 'down', 'low', 'unhappy', 'cry', 'crying'],
-        happy: ['happy', 'great', 'good', 'amazing', 'wonderful', 'fantastic', 'better'],
+        sad: ['sad', 'depressed', 'down', 'low', 'unhappy', 'cry', 'crying', 'miserable'],
+        happy: ['happy', 'great', 'good', 'amazing', 'wonderful', 'fantastic', 'better', 'proud'],
         tempted: ['tempted', 'temptation', 'might drink', 'thinking about drinking', 'weak'],
-        relapse: ['relapse', 'relapsed', 'drank', 'had a drink', 'slipped', 'fell off']
+        relapse: ['relapse', 'relapsed', 'drank', 'had a drink', 'slipped', 'fell off'],
+        grateful: ['grateful', 'thankful', 'gratitude', 'blessed', 'appreciate'],
+        sleep: ['sleep', 'insomnia', 'cant sleep', "can't sleep", 'awake', 'nightmare', 'tired']
     };
 
     for (const [key, words] of Object.entries(keywords)) {
         if (words.some(w => text.includes(w))) {
-            return chatResponses[key];
+            chatContext.lastTopic = key;
+            const responses = chatResponses[key];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+    }
+
+    // Context-aware follow-ups
+    if (chatContext.lastTopic && (text.includes('yes') || text.includes('yeah') || text.includes('ok') || text.includes('sure'))) {
+        const followUps = {
+            craving: "Good. Try this: hold an ice cube in your hand for 30 seconds. The sharp sensation can break the craving cycle. Sounds weird, but it works. Let me know how you go.",
+            stressed: "Let's try this. Breathe in for 4 seconds... hold for 4... out for 6. Do it 4 times. I'll wait right here.",
+            sad: "Take a moment and write one thing — just one — that went right today. Even something tiny. Drop it in your journal. I'll be here.",
+            tempted: "Play the Tetris game right now. Seriously — it's scientifically proven that visual games reduce cravings. Come back and tell me your high score.",
+            lonely: "Open your phone and message one person right now. Even a simple 'hey, thinking of you.' Connection doesn't have to be complicated.",
+        };
+        if (followUps[chatContext.lastTopic]) {
+            const resp = followUps[chatContext.lastTopic];
+            chatContext.lastTopic = null;
+            return resp;
         }
     }
 
@@ -3619,6 +3801,117 @@ function renderVisionBoard() {
                 </div>
             </div>`;
     }).join('');
+}
+
+// =========================================
+// THEME
+// =========================================
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('soberpledge-theme', theme);
+    updateThemeUI();
+}
+
+function updateThemeUI() {
+    const theme = localStorage.getItem('soberpledge-theme') || 'dark';
+    const darkBtn = document.getElementById('theme-dark-btn');
+    const lightBtn = document.getElementById('theme-light-btn');
+    if (!darkBtn || !lightBtn) return;
+
+    if (theme === 'light') {
+        darkBtn.className = 'btn btn-small btn-outline';
+        lightBtn.className = 'btn btn-small';
+    } else {
+        darkBtn.className = 'btn btn-small';
+        lightBtn.className = 'btn btn-small btn-outline';
+    }
+}
+
+// Apply saved theme on load
+(function() {
+    const saved = localStorage.getItem('soberpledge-theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+})();
+
+// =========================================
+// SOS CONTACTS
+// =========================================
+function getSOSContacts() {
+    return JSON.parse(localStorage.getItem('soberpledge-sos') || '[]');
+}
+
+function saveSOSContacts(contacts) {
+    localStorage.setItem('soberpledge-sos', JSON.stringify(contacts));
+}
+
+function addSOSContact() {
+    const name = document.getElementById('sos-name-input').value.trim();
+    const phone = document.getElementById('sos-phone-input').value.trim();
+    if (!name || !phone) { alert('Please enter both name and phone number.'); return; }
+
+    const contacts = getSOSContacts();
+    contacts.push({ name, phone });
+    saveSOSContacts(contacts);
+    document.getElementById('sos-name-input').value = '';
+    document.getElementById('sos-phone-input').value = '';
+    renderSOSContacts();
+    renderSOSUrge();
+}
+
+function deleteSOSContact(index) {
+    const contacts = getSOSContacts();
+    contacts.splice(index, 1);
+    saveSOSContacts(contacts);
+    renderSOSContacts();
+    renderSOSUrge();
+}
+
+function renderSOSContacts() {
+    const container = document.getElementById('sos-contacts-list');
+    if (!container) return;
+    const contacts = getSOSContacts();
+
+    if (!contacts.length) {
+        container.innerHTML = '<div style="font-size:13px;color:var(--text-muted);padding:8px 0;">No contacts added yet.</div>';
+        return;
+    }
+
+    container.innerHTML = contacts.map((c, i) => `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--gradient-warm);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;">${c.name.charAt(0).toUpperCase()}</div>
+            <div style="flex:1;">
+                <div style="font-weight:600;font-size:14px;">${escapeHtml(c.name)}</div>
+                <div style="font-size:12px;color:var(--text-muted);">${escapeHtml(c.phone)}</div>
+            </div>
+            <a href="tel:${c.phone}" class="btn btn-small btn-green" style="text-decoration:none;padding:6px 12px;font-size:12px;">Call</a>
+            <a href="sms:${c.phone}" class="btn btn-small btn-outline" style="text-decoration:none;padding:6px 12px;font-size:12px;">Text</a>
+            <button style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;opacity:0.5;" onclick="deleteSOSContact(${i})">×</button>
+        </div>
+    `).join('');
+}
+
+function renderSOSUrge() {
+    const container = document.getElementById('sos-urge-area');
+    if (!container) return;
+    const contacts = getSOSContacts();
+
+    if (!contacts.length) {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = `
+        <div style="background:linear-gradient(135deg, rgba(239,68,68,0.1), rgba(245,158,11,0.05));border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius);padding:16px;text-align:center;">
+            <div style="font-weight:700;font-size:15px;margin-bottom:8px;">Reach out to someone</div>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                ${contacts.map(c => `
+                    <a href="tel:${c.phone}" class="btn btn-small" style="background:var(--gradient-warm);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+                        <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        ${escapeHtml(c.name)}
+                    </a>
+                `).join('')}
+            </div>
+        </div>`;
 }
 
 // =========================================
