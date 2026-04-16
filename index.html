@@ -18,6 +18,9 @@
         gtag('js', new Date());
         gtag('config', 'G-XXXXXXXXXX');
     </script>
+    <!-- Firebase SDK for live community feed -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -2321,12 +2324,7 @@
         <div class="card profile-card">
             <div class="profile-avatar" id="profile-avatar"></div>
             <div class="profile-name" id="profile-name"></div>
-            <div class="profile-handle" id="profile-handle"></div>
-            <div id="profile-ig-btn"></div>
-            <div class="ig-edit-area">
-                <input type="text" class="ig-edit-input" id="ig-edit-input" placeholder="@yourhandle">
-                <button class="btn btn-small" onclick="saveInstagram()">Save</button>
-            </div>
+            <div class="profile-handle" id="profile-handle" style="color:var(--text-muted);font-size:13px;"></div>
         </div>
 
         <div class="card" style="margin-top: 16px;">
@@ -2964,6 +2962,7 @@ function initApp() {
     renderSOSUrge();
     updateNotifUI();
     updateAIChatUI();
+    initFirebase();
     checkPledgeReminder();
 }
 
@@ -3869,7 +3868,16 @@ const surfPhases = [
     { start: 120, end: 0, phase: 'Fading', guidance: 'Almost there. The wave is passing. You\'ve proven you\'re stronger than any craving. Take a deep breath and feel the calm returning. You did this.' }
 ];
 
+function trackUrgeToolUse() {
+    const data = getData();
+    if (data) {
+        data.urgeToolsUsed = (data.urgeToolsUsed || 0) + 1;
+        saveData(data);
+    }
+}
+
 function startCravingSurf() {
+    trackUrgeToolUse();
     surfSeconds = 1200;
     surfRunning = false;
     surfIntensityLog = [];
@@ -4152,6 +4160,7 @@ function selectMedSound(sound) {
 }
 
 function showMeditation() {
+    trackUrgeToolUse();
     document.getElementById('urge-intro').style.display = 'none';
     document.getElementById('tetris-game').style.display = 'none';
     document.getElementById('meditation-area').style.display = 'block';
@@ -4416,6 +4425,7 @@ const PIECES = [
 ];
 
 function startTetris() {
+    trackUrgeToolUse();
     document.getElementById('urge-intro').style.display = 'none';
     document.getElementById('tetris-game').style.display = 'block';
     const canvas = document.getElementById('tetris-canvas');
@@ -5880,6 +5890,7 @@ let _boxBreathInterval = null;
 let _bodyScanStep = 0;
 
 function showGrounding() {
+    trackUrgeToolUse();
     document.getElementById('urge-intro').style.display = 'none';
     document.getElementById('grounding-area').style.display = 'block';
     document.getElementById('grounding-intro').style.display = 'block';
@@ -6330,95 +6341,65 @@ function renderPledgeCalendar() {
 }
 
 // =========================================
-// COMMUNITY
+// COMMUNITY (Firebase-powered live feed)
 // =========================================
 let communityTab = 'feed';
+let firebaseDB = null;
+let communityPostsCache = [];
+let firebaseUserId = null;
 
-const sampleCommunityPosts = [
-    {
-        id: 'sample-1',
-        name: 'Sarah M.',
-        initial: 'S',
-        color: '#ec4899',
-        days: 127,
-        badge: 'Streak Warrior',
-        badgeColor: 'rgba(236, 72, 153, 0.15)',
-        badgeTextColor: '#ec4899',
-        text: "127 days today. Never thought I'd make it past a week when I started. If you're on day 1, keep going. It gets so much easier. The mornings alone are worth it.",
-        time: '2h ago',
-        likes: 24,
-        liked: false,
-        comments: [
-            { name: 'James K.', initial: 'J', color: '#3b82f6', text: 'Proud of you Sarah! The mornings really are a game changer.' },
-            { name: 'Emma R.', initial: 'E', color: '#10b981', text: "I'm on day 3 and this gives me so much hope" }
-        ]
-    },
-    {
-        id: 'sample-2',
-        name: 'Marcus T.',
-        initial: 'M',
-        color: '#f59e0b',
-        days: 42,
-        badge: 'Rising Star',
-        badgeColor: 'rgba(245, 158, 11, 0.15)',
-        badgeTextColor: '#f59e0b',
-        text: "Went to a pub with mates last night for the first time since quitting. Ordered a sparkling water and actually had a great time. Nobody even cared. All those fears were in my head.",
-        time: '5h ago',
-        likes: 31,
-        liked: false,
-        comments: [
-            { name: 'Sarah M.', initial: 'S', color: '#ec4899', text: "That's a massive win! Social situations get easier every time." }
-        ]
-    },
-    {
-        id: 'sample-3',
-        name: 'Lisa C.',
-        initial: 'L',
-        color: '#8b5cf6',
-        days: 365,
-        badge: 'Legend',
-        badgeColor: 'rgba(139, 92, 246, 0.15)',
-        badgeTextColor: '#8b5cf6',
-        text: "ONE YEAR. 365 days. I literally cannot believe I'm writing this. To my past self who didn't think she could make it one weekend — look at us now. Crying happy tears. Thank you to everyone in this community who kept me going.",
-        time: '8h ago',
-        likes: 89,
-        liked: false,
-        comments: [
-            { name: 'Marcus T.', initial: 'M', color: '#f59e0b', text: 'LEGEND!!! This is so inspiring. One year!!!' },
-            { name: 'Alex P.', initial: 'A', color: '#06b6d4', text: 'You deserve every bit of this. What an achievement.' },
-            { name: 'Rachel W.', initial: 'R', color: '#10b981', text: "I'm at 2 months and posts like this keep me going. Congratulations Lisa!" }
-        ]
-    },
-    {
-        id: 'sample-4',
-        name: 'David R.',
-        initial: 'D',
-        color: '#10b981',
-        days: 14,
-        badge: null,
-        text: "Two weeks in and I've already saved enough to book a weekend away with the kids. They don't know it yet but we're going to the seaside. This is what sobriety looks like.",
-        time: '12h ago',
-        likes: 45,
-        liked: false,
-        comments: [
-            { name: 'Lisa C.', initial: 'L', color: '#8b5cf6', text: "Your kids are so lucky. These moments are everything." }
-        ]
-    },
-    {
-        id: 'sample-5',
-        name: 'Priya K.',
-        initial: 'P',
-        color: '#06b6d4',
-        days: 7,
-        badge: null,
-        text: "One week! My anxiety has dropped so much. I actually slept through the whole night for the first time in months. Small wins matter.",
-        time: '1d ago',
-        likes: 18,
-        liked: false,
-        comments: []
+// Firebase configuration — replace with your project's config
+const firebaseConfig = {
+    apiKey: "FIREBASE_API_KEY",
+    authDomain: "FIREBASE_PROJECT.firebaseapp.com",
+    databaseURL: "https://FIREBASE_PROJECT-default-rtdb.firebaseio.com",
+    projectId: "FIREBASE_PROJECT",
+    storageBucket: "FIREBASE_PROJECT.appspot.com",
+    messagingSenderId: "000000000000",
+    appId: "1:000000000000:web:0000000000000000"
+};
+
+function initFirebase() {
+    try {
+        if (typeof firebase === 'undefined') {
+            console.warn('Firebase SDK not loaded — community feed will work in local-only mode.');
+            return;
+        }
+        if (!firebaseConfig.apiKey || firebaseConfig.apiKey === 'FIREBASE_API_KEY') {
+            console.warn('Firebase not configured — community feed will work in local-only mode.');
+            return;
+        }
+        firebase.initializeApp(firebaseConfig);
+        firebaseDB = firebase.database();
+
+        // Generate a persistent anonymous user ID
+        firebaseUserId = localStorage.getItem('soberpledge-uid');
+        if (!firebaseUserId) {
+            firebaseUserId = 'user-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('soberpledge-uid', firebaseUserId);
+        }
+
+        // Listen for live updates
+        firebaseDB.ref('posts').orderByChild('date').limitToLast(50).on('value', (snapshot) => {
+            communityPostsCache = [];
+            snapshot.forEach((child) => {
+                const post = child.val();
+                post.firebaseKey = child.key;
+                communityPostsCache.push(post);
+            });
+            communityPostsCache.reverse(); // newest first
+            renderCommunityFeed();
+        });
+    } catch (e) {
+        console.warn('Firebase init failed:', e.message);
     }
-];
+}
 
+function isFirebaseActive() {
+    return firebaseDB !== null;
+}
+
+// Local fallback for when Firebase isn't configured
 function getCommunityPosts() {
     return JSON.parse(localStorage.getItem('soberpledge-community') || '[]');
 }
@@ -6440,62 +6421,91 @@ function addCommunityPost() {
     const text = input.value.trim();
     if (!text) return;
 
-    const data = getData();
-    const file = photoInput.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            saveCommunityPost(text, e.target.result);
-        };
-        reader.readAsDataURL(file);
+    // Photos not supported in Firebase (too large for Realtime DB)
+    // Only use photos in local-only mode
+    if (!isFirebaseActive()) {
+        const file = photoInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                saveCommunityPostLocal(text, e.target.result);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            saveCommunityPostLocal(text, null);
+        }
     } else {
-        saveCommunityPost(text, null);
+        saveCommunityPostFirebase(text);
     }
     input.value = '';
     photoInput.value = '';
 }
 
-function saveCommunityPost(text, photo) {
+function saveCommunityPostLocal(text, photo) {
     const data = getData();
     const posts = getCommunityPosts();
     const streakDays = getStreakDays(data);
+    const colors = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#8b5cf6', '#06b6d4', '#3b82f6'];
     posts.unshift({
         id: 'user-' + Date.now(),
+        uid: 'local',
         name: data.name,
         initial: data.name.charAt(0).toUpperCase(),
-        color: '#6366f1',
+        color: colors[Math.floor(Math.random() * colors.length)],
         days: streakDays,
-        badge: null,
         text: text,
         photo: photo,
         time: 'Just now',
         likes: 0,
-        liked: false,
+        likedBy: {},
         comments: [],
-        isUser: true,
         date: new Date().toISOString()
     });
     saveCommunityPosts(posts);
     renderCommunityFeed();
 }
 
+function saveCommunityPostFirebase(text) {
+    const data = getData();
+    const streakDays = getStreakDays(data);
+    const colors = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#8b5cf6', '#06b6d4', '#3b82f6'];
+    const post = {
+        uid: firebaseUserId,
+        name: data.name,
+        initial: data.name.charAt(0).toUpperCase(),
+        color: colors[Math.floor(Math.random() * colors.length)],
+        days: streakDays,
+        text: text,
+        likes: 0,
+        likedBy: {},
+        comments: {},
+        date: new Date().toISOString()
+    };
+    firebaseDB.ref('posts').push(post);
+}
+
 function toggleLike(postId) {
-    // Check user posts
-    const posts = getCommunityPosts();
-    const userPost = posts.find(p => p.id === postId);
-    if (userPost) {
-        userPost.liked = !userPost.liked;
-        userPost.likes += userPost.liked ? 1 : -1;
-        saveCommunityPosts(posts);
-        renderCommunityFeed();
-        return;
-    }
-    // Check sample posts
-    const sample = sampleCommunityPosts.find(p => p.id === postId);
-    if (sample) {
-        sample.liked = !sample.liked;
-        sample.likes += sample.liked ? 1 : -1;
-        renderCommunityFeed();
+    if (isFirebaseActive()) {
+        // Find post by firebaseKey
+        const post = communityPostsCache.find(p => p.firebaseKey === postId);
+        if (!post) return;
+        const likedBy = post.likedBy || {};
+        if (likedBy[firebaseUserId]) {
+            firebaseDB.ref('posts/' + postId + '/likedBy/' + firebaseUserId).remove();
+            firebaseDB.ref('posts/' + postId + '/likes').set(Math.max(0, (post.likes || 1) - 1));
+        } else {
+            firebaseDB.ref('posts/' + postId + '/likedBy/' + firebaseUserId).set(true);
+            firebaseDB.ref('posts/' + postId + '/likes').set((post.likes || 0) + 1);
+        }
+    } else {
+        const posts = getCommunityPosts();
+        const userPost = posts.find(p => p.id === postId);
+        if (userPost) {
+            userPost.liked = !userPost.liked;
+            userPost.likes += userPost.liked ? 1 : -1;
+            saveCommunityPosts(posts);
+            renderCommunityFeed();
+        }
     }
 }
 
@@ -6506,70 +6516,116 @@ function addComment(postId) {
     if (!text) return;
 
     const data = getData();
+    const colors = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#8b5cf6', '#06b6d4', '#3b82f6'];
     const comment = {
+        uid: isFirebaseActive() ? firebaseUserId : 'local',
         name: data.name,
         initial: data.name.charAt(0).toUpperCase(),
-        color: '#6366f1',
-        text: text
+        color: colors[Math.floor(Math.random() * colors.length)],
+        text: text,
+        date: new Date().toISOString()
     };
 
-    // Check user posts
-    const posts = getCommunityPosts();
-    const userPost = posts.find(p => p.id === postId);
-    if (userPost) {
-        userPost.comments.push(comment);
-        saveCommunityPosts(posts);
-        renderCommunityFeed();
-        return;
+    if (isFirebaseActive()) {
+        firebaseDB.ref('posts/' + postId + '/comments').push(comment);
+    } else {
+        const posts = getCommunityPosts();
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+            post.comments.push(comment);
+            saveCommunityPosts(posts);
+            renderCommunityFeed();
+        }
     }
-    // Check sample posts
-    const sample = sampleCommunityPosts.find(p => p.id === postId);
-    if (sample) {
-        sample.comments.push(comment);
+    input.value = '';
+}
+
+function deleteCommunityPost(postId) {
+    if (isFirebaseActive()) {
+        firebaseDB.ref('posts/' + postId).remove();
+    } else {
+        let posts = getCommunityPosts();
+        posts = posts.filter(p => p.id !== postId);
+        saveCommunityPosts(posts);
         renderCommunityFeed();
     }
 }
 
-function deleteCommunityPost(postId) {
-    let posts = getCommunityPosts();
-    posts = posts.filter(p => p.id !== postId);
-    saveCommunityPosts(posts);
-    renderCommunityFeed();
+function timeAgo(dateStr) {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const seconds = Math.floor((now - date) / 1000);
+    if (seconds < 60) return 'Just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + 'm ago';
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + 'h ago';
+    const days = Math.floor(hours / 24);
+    if (days < 7) return days + 'd ago';
+    return date.toLocaleDateString();
 }
 
 function renderCommunityFeed() {
     const container = document.getElementById('community-feed');
     if (!container) return;
 
-    const userPosts = getCommunityPosts();
     let allPosts;
+    const myUid = isFirebaseActive() ? firebaseUserId : 'local';
 
-    if (communityTab === 'my') {
-        allPosts = userPosts;
-        if (!allPosts.length) {
-            container.innerHTML = '<div class="empty-state">You haven\'t shared anything yet. Your story could help someone today.</div>';
-            return;
+    if (isFirebaseActive()) {
+        if (communityTab === 'my') {
+            allPosts = communityPostsCache.filter(p => p.uid === firebaseUserId);
+        } else {
+            allPosts = communityPostsCache;
         }
     } else {
-        allPosts = [...userPosts, ...sampleCommunityPosts];
+        allPosts = getCommunityPosts();
+        if (communityTab === 'my') {
+            // All local posts are the user's
+        } else {
+            // In local mode, just show user's posts
+        }
+    }
+
+    if (!allPosts.length) {
+        const emptyMsg = communityTab === 'my'
+            ? 'You haven\'t shared anything yet. Your story could help someone today.'
+            : 'Be the first to share! This community is brand new — your post could inspire someone starting their journey.';
+        container.innerHTML = '<div class="empty-state" style="text-align:center;padding:40px 20px;">'
+            + '<div style="font-size:36px;margin-bottom:12px;">💬</div>'
+            + '<div style="color:var(--text-muted);font-size:14px;line-height:1.6;">' + emptyMsg + '</div>'
+            + '</div>';
+        return;
     }
 
     container.innerHTML = allPosts.map(post => {
-        const badgeHtml = post.badge
-            ? `<span class="community-post-badge" style="background:${post.badgeColor || 'rgba(99,102,241,0.15)'};color:${post.badgeTextColor || 'var(--accent)'}">${post.badge}</span>`
-            : '';
+        const postId = isFirebaseActive() ? post.firebaseKey : post.id;
+        const isOwner = isFirebaseActive() ? (post.uid === firebaseUserId) : true;
+        const isLiked = isFirebaseActive() ? (post.likedBy && post.likedBy[firebaseUserId]) : post.liked;
+        const timeStr = post.date ? timeAgo(post.date) : (post.time || '');
+
+        // Convert Firebase comments object to array
+        let commentsArr = [];
+        if (post.comments) {
+            if (Array.isArray(post.comments)) {
+                commentsArr = post.comments;
+            } else {
+                commentsArr = Object.values(post.comments);
+            }
+        }
+
         const photoHtml = post.photo
             ? `<img class="community-post-photo" src="${post.photo}">`
             : '';
-        const deleteHtml = post.isUser
-            ? `<button class="community-action-btn" onclick="deleteCommunityPost('${post.id}')" style="margin-left:auto;"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>`
+        const deleteHtml = isOwner
+            ? `<button class="community-action-btn" onclick="deleteCommunityPost('${postId}')" style="margin-left:auto;"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>`
             : '';
-        const commentsHtml = post.comments.length ? post.comments.map(c => `
+        const commentsHtml = commentsArr.length ? commentsArr.map(c => `
             <div class="community-comment">
-                <div class="community-comment-avatar" style="background:${c.color}">${c.initial}</div>
+                <div class="community-comment-avatar" style="background:${c.color || '#6366f1'}">${escapeHtml(c.initial || '?')}</div>
                 <div>
-                    <div class="community-comment-name">${escapeHtml(c.name)}</div>
-                    <div class="community-comment-text">${escapeHtml(c.text)}</div>
+                    <div class="community-comment-name">${escapeHtml(c.name || 'Anonymous')}</div>
+                    <div class="community-comment-text">${escapeHtml(c.text || '')}</div>
                 </div>
             </div>
         `).join('') : '';
@@ -6577,30 +6633,30 @@ function renderCommunityFeed() {
         return `
             <div class="community-post">
                 <div class="community-post-header">
-                    <div class="community-avatar" style="background:${post.color}">${post.initial}</div>
+                    <div class="community-avatar" style="background:${post.color || '#6366f1'}">${escapeHtml(post.initial || '?')}</div>
                     <div>
-                        <div class="community-post-name">${escapeHtml(post.name)}${badgeHtml}</div>
-                        <div class="community-post-meta">${post.days} days sober · ${post.time}</div>
+                        <div class="community-post-name">${escapeHtml(post.name || 'Anonymous')}</div>
+                        <div class="community-post-meta">${post.days || 0} days sober · ${timeStr}</div>
                     </div>
                 </div>
-                <div class="community-post-text">${escapeHtml(post.text)}</div>
+                <div class="community-post-text">${escapeHtml(post.text || '')}</div>
                 ${photoHtml}
                 <div class="community-actions">
-                    <button class="community-action-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
+                    <button class="community-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${postId}')">
                         <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                        ${post.likes}
+                        ${post.likes || 0}
                     </button>
-                    <button class="community-action-btn" onclick="document.getElementById('comment-${post.id}').focus()">
+                    <button class="community-action-btn" onclick="document.getElementById('comment-${postId}').focus()">
                         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                        ${post.comments.length}
+                        ${commentsArr.length}
                     </button>
                     ${deleteHtml}
                 </div>
                 <div class="community-comments">
                     ${commentsHtml}
                     <div class="community-comment-input">
-                        <input type="text" id="comment-${post.id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter')addComment('${post.id}')">
-                        <button class="btn btn-small" style="padding:8px 14px;font-size:12px;" onclick="addComment('${post.id}')">Post</button>
+                        <input type="text" id="comment-${postId}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter')addComment('${postId}')">
+                        <button class="btn btn-small" style="padding:8px 14px;font-size:12px;" onclick="addComment('${postId}')">Post</button>
                     </div>
                 </div>
             </div>`;
@@ -7084,7 +7140,7 @@ function renderBadges() {
         { icon: '🗣️', name: 'Top Poster', desc: '10 community posts', earned: communityPosts >= 10 },
         { icon: '💛', name: 'Purposeful', desc: '3 reasons to quit', earned: whyReasons >= 3 },
         { icon: '🎯', name: 'Dreamer', desc: 'Set a vision goal', earned: visionGoals >= 1 },
-        { icon: '🛡️', name: 'Fighter', desc: 'Use the urge tools', earned: streakDays >= 1 },
+        { icon: '🛡️', name: 'Fighter', desc: 'Use the urge tools', earned: (data.urgeToolsUsed || 0) >= 1 },
     ];
 
     container.innerHTML = badges.map(b => `
@@ -7097,7 +7153,7 @@ function renderBadges() {
 }
 
 // =========================================
-// PROFILE & INSTAGRAM
+// PROFILE
 // =========================================
 function renderProfile() {
     const data = getData();
@@ -7108,19 +7164,8 @@ function renderProfile() {
     document.getElementById('profile-name').textContent = data.name;
 
     const handleEl = document.getElementById('profile-handle');
-    const btnEl = document.getElementById('profile-ig-btn');
-    const editInput = document.getElementById('ig-edit-input');
-
-    if (data.instagram) {
-        const safeHandle = encodeURIComponent(data.instagram);
-        handleEl.innerHTML = '<a href="https://instagram.com/' + safeHandle + '" target="_blank">@' + escapeHtml(data.instagram) + '</a>';
-        btnEl.innerHTML = '<a href="https://instagram.com/' + safeHandle + '" target="_blank" class="btn btn-small btn-instagram" style="display:inline-block; margin-top:16px; text-decoration:none;">Follow on Instagram</a>';
-        editInput.value = data.instagram;
-    } else {
-        handleEl.textContent = 'No Instagram linked yet';
-        btnEl.innerHTML = '';
-        editInput.value = '';
-    }
+    const streakDays = getStreakDays(data);
+    handleEl.textContent = streakDays + ' days sober';
 
     // Populate sober date/time editor
     document.getElementById('profile-sober-date').value = data.soberDate;
@@ -7156,21 +7201,25 @@ function saveSpendingHabits() {
     initApp();
 }
 
-function saveInstagram() {
-    const data = getData();
-    const handle = document.getElementById('ig-edit-input').value.trim().replace(/^@/, '');
-    data.instagram = handle;
-    saveData(data);
-    renderProfile();
-}
-
 function copyProfileLink() {
-    const data = getData();
-    if (data.instagram) {
-        navigator.clipboard.writeText('https://instagram.com/' + data.instagram);
-        alert('Instagram link copied!');
+    const appUrl = window.location.href.split('?')[0].split('#')[0];
+    if (navigator.share) {
+        navigator.share({
+            title: 'Sober Pledge',
+            text: 'Track your sobriety journey with Sober Pledge — free and private.',
+            url: appUrl
+        }).catch(() => {});
     } else {
-        alert('Add your Instagram handle first!');
+        navigator.clipboard.writeText(appUrl).then(() => {
+            const status = document.getElementById('accountability-status');
+            if (status) {
+                status.textContent = 'App link copied!';
+                status.style.color = 'var(--green)';
+                setTimeout(() => { status.textContent = ''; }, 3000);
+            } else {
+                alert('Link copied: ' + appUrl);
+            }
+        });
     }
 }
 
