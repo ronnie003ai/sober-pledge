@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0f1a"/>
+      <stop offset="100%" style="stop-color:#111827"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="shieldInner" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#818cf8"/>
+      <stop offset="50%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#7c3aed"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#6366f1" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- Subtle radial glow behind shield -->
+  <circle cx="256" cy="248" r="160" fill="#6366f1" opacity="0.08"/>
+
+  <!-- Shield shape -->
+  <g filter="url(#shadow)">
+    <path d="M256 72 L400 132 C400 132 408 280 256 408 C104 280 112 132 112 132 Z"
+          fill="url(#shield)"
+          stroke="rgba(255,255,255,0.1)"
+          stroke-width="2"/>
+  </g>
+
+  <!-- Inner shield highlight -->
+  <path d="M256 96 L380 148 C380 148 387 276 256 388 C125 276 132 148 132 148 Z"
+        fill="url(#shieldInner)" opacity="0.3"/>
+
+  <!-- Checkmark -->
+  <g filter="url(#glow)">
+    <polyline points="186,248 234,300 330,196"
+              fill="none"
+              stroke="white"
+              stroke-width="32"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+  </g>
+
+  <!-- Small highlight arc on shield top-left -->
+  <path d="M168 152 Q200 130 240 112"
+        fill="none"
+        stroke="rgba(255,255,255,0.15)"
+        stroke-width="4"
+        stroke-linecap="round"/>
+</svg>
