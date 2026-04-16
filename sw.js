@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sober-pledge-v2';
+const CACHE_NAME = 'sober-pledge-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -27,5 +27,20 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
+  );
+});
+
+// Notification click — open or focus the app
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      for (const client of windowClients) {
+        if (client.url.includes('index.html') || client.url.endsWith('/')) {
+          return client.focus();
+        }
+      }
+      return clients.openWindow('./');
+    })
   );
 });

@@ -1254,6 +1254,16 @@
         }
 
         /* Trigger Tracker */
+        .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+        .cal-header { font-size:10px; color:var(--text-muted); text-align:center; padding:4px 0; font-weight:600; }
+        .cal-day { aspect-ratio:1; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:500; position:relative; color:var(--text-muted); }
+        .cal-day.today { outline:2px solid var(--accent); outline-offset:-2px; color:var(--text); font-weight:700; }
+        .cal-day.pledged { background:var(--accent); color:#fff; font-weight:700; }
+        .cal-day.mood-only { background:var(--orange); color:#fff; font-weight:600; }
+        .cal-day.both { background:linear-gradient(135deg, var(--accent) 50%, var(--orange) 50%); color:#fff; font-weight:700; }
+        .cal-day.empty { visibility:hidden; }
+        .cal-day.future { opacity:0.3; }
+
         .trigger-grid {
             display: flex;
             flex-wrap: wrap;
@@ -1323,6 +1333,43 @@
         }
 
         /* Floating Chat Button */
+        .timeline-item { position:relative; padding-left:36px; padding-bottom:24px; }
+        .timeline-item::before { content:''; position:absolute; left:12px; top:0; bottom:0; width:2px; background:var(--border); }
+        .timeline-item:last-child::before { display:none; }
+        .timeline-item::after { content:''; position:absolute; left:6px; top:4px; width:14px; height:14px; border-radius:50%; border:2px solid var(--accent); background:var(--bg); z-index:1; }
+        .timeline-item.milestone-item::after { background:var(--accent); border-color:var(--accent); }
+        .timeline-item.journal-item::after { border-color:var(--green); }
+        .timeline-item.badge-item::after { border-color:var(--orange); background:var(--orange); }
+        .timeline-item .tl-date { font-size:11px; color:var(--text-muted); font-weight:600; }
+        .timeline-item .tl-title { font-size:14px; font-weight:600; color:var(--text); margin-top:2px; }
+        .timeline-item .tl-desc { font-size:12px; color:var(--text-muted); margin-top:2px; }
+
+        .fab-sos {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none;
+            color: white;
+            cursor: pointer;
+            z-index: 99;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(239,68,68,0.4);
+            transition: all 0.3s ease;
+            font-size: 12px;
+            font-weight: 900;
+            font-family: inherit;
+            letter-spacing: 0.5px;
+        }
+        .fab-sos:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(239,68,68,0.5); }
+        .fab-sos:active { transform: scale(0.95); }
+        @keyframes sosPulse { 0%,100% { box-shadow: 0 4px 20px rgba(239,68,68,0.4); } 50% { box-shadow: 0 4px 30px rgba(239,68,68,0.6); } }
+
         .fab-chat {
             position: fixed;
             bottom: 80px;
@@ -1504,6 +1551,7 @@
         <div class="card streak-card">
             <div class="streak-number" id="streak-days">0</div>
             <div class="streak-label">days sober</div>
+            <div id="live-timer" style="font-size:16px; font-weight:600; color:var(--accent-light); margin-top:6px; position:relative; font-variant-numeric:tabular-nums; letter-spacing:1px;"></div>
             <div class="streak-message" id="streak-msg"></div>
             <button class="btn btn-small btn-outline" onclick="generateShareCard()" style="margin-top:16px; position:relative; display:inline-flex; align-items:center; gap:6px;">
                 <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -1533,12 +1581,137 @@
             </div>
         </div>
 
+        <div style="text-align:center;margin-bottom:4px;">
+            <button onclick="showScreen('stats')" style="background:none;border:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;padding:6px 16px;font-family:inherit;">View Stats →</button>
+            <span style="color:var(--border);">|</span>
+            <button onclick="showScreen('journey')" style="background:none;border:none;color:var(--accent-light);font-size:13px;font-weight:600;cursor:pointer;padding:6px 16px;font-family:inherit;">My Journey →</button>
+        </div>
+
         <div class="card" id="weekly-recap-card" style="display:none; background:linear-gradient(135deg, rgba(99,102,241,0.06), rgba(16,185,129,0.04)); border-color:rgba(99,102,241,0.12);">
             <div class="section-title" style="display:flex;align-items:center;gap:6px;">
                 <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 This Week
             </div>
             <div id="weekly-recap-content" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;"></div>
+        </div>
+
+        <!-- Daily Check-in Card -->
+        <div class="card" id="checkin-prompt-card" style="display:none; background:linear-gradient(135deg, rgba(16,185,129,0.08), rgba(59,130,246,0.06)); border-color:rgba(16,185,129,0.15); cursor:pointer;" onclick="openCheckin()">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:44px;height:44px;border-radius:14px;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:22px;">📋</div>
+                <div style="flex:1;">
+                    <div style="font-size:15px;font-weight:700;color:var(--text);" id="checkin-prompt-title">Daily Check-in</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="checkin-prompt-sub">Take a moment to reflect on how you're doing today</div>
+                </div>
+                <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+        </div>
+
+        <!-- Check-in Modal -->
+        <div id="checkin-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:var(--bg);overflow-y:auto;">
+            <div style="max-width:480px;margin:0 auto;padding:20px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+                    <button class="btn btn-outline btn-small" onclick="closeCheckin()">← Back</button>
+                    <div style="font-size:12px;color:var(--text-muted);" id="checkin-step-label">Step 1 of 4</div>
+                </div>
+
+                <!-- Step 1: Overall feeling -->
+                <div class="checkin-step" id="checkin-step-1">
+                    <h3 style="margin-bottom:4px;">How are you feeling right now?</h3>
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Be honest — there's no wrong answer.</p>
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                        <span style="font-size:13px;color:var(--text-muted);">Low</span>
+                        <input type="range" min="1" max="10" value="5" id="checkin-feeling" style="flex:1;accent-color:var(--accent);">
+                        <span style="font-size:13px;color:var(--text-muted);">Great</span>
+                    </div>
+                    <div style="text-align:center;font-size:28px;font-weight:800;color:var(--accent);margin:8px 0;" id="checkin-feeling-val">5</div>
+                    <div style="text-align:center;font-size:13px;color:var(--text-muted);" id="checkin-feeling-label">Okay</div>
+                    <button class="btn" style="width:100%;margin-top:24px;" onclick="checkinNext(2)">Next</button>
+                </div>
+
+                <!-- Step 2: Sleep quality -->
+                <div class="checkin-step" id="checkin-step-2" style="display:none;">
+                    <h3 style="margin-bottom:4px;">How did you sleep?</h3>
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Sleep is one of the first things to improve in recovery.</p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="checkin-sleep-btns">
+                        <button class="btn btn-outline" onclick="selectCheckinOption('sleep','terrible',this)" style="padding:16px;font-size:14px;">😫 Terrible</button>
+                        <button class="btn btn-outline" onclick="selectCheckinOption('sleep','poor',this)" style="padding:16px;font-size:14px;">😴 Poor</button>
+                        <button class="btn btn-outline" onclick="selectCheckinOption('sleep','okay',this)" style="padding:16px;font-size:14px;">😐 Okay</button>
+                        <button class="btn btn-outline" onclick="selectCheckinOption('sleep','good',this)" style="padding:16px;font-size:14px;">😊 Good</button>
+                        <button class="btn btn-outline" onclick="selectCheckinOption('sleep','great',this)" style="padding:16px;font-size:14px;grid-column:span 2;">🌟 Great — best sleep in ages</button>
+                    </div>
+                    <button class="btn" style="width:100%;margin-top:24px;" onclick="checkinNext(3)">Next</button>
+                </div>
+
+                <!-- Step 3: Energy & cravings -->
+                <div class="checkin-step" id="checkin-step-3" style="display:none;">
+                    <h3 style="margin-bottom:4px;">Energy & Cravings</h3>
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Quick pulse check on your day.</p>
+                    <div style="margin-bottom:20px;">
+                        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text);">Energy Level</div>
+                        <div style="display:flex;gap:6px;" id="checkin-energy-btns">
+                            <button class="btn btn-outline btn-small" onclick="selectCheckinOption('energy','drained',this)" style="flex:1;">🪫 Drained</button>
+                            <button class="btn btn-outline btn-small" onclick="selectCheckinOption('energy','low',this)" style="flex:1;">😐 Low</button>
+                            <button class="btn btn-outline btn-small" onclick="selectCheckinOption('energy','moderate',this)" style="flex:1;">⚡ Moderate</button>
+                            <button class="btn btn-outline btn-small" onclick="selectCheckinOption('energy','high',this)" style="flex:1;">🔥 High</button>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text);">Craving Intensity</div>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <span style="font-size:13px;color:var(--text-muted);">None</span>
+                            <input type="range" min="0" max="10" value="0" id="checkin-craving" style="flex:1;accent-color:var(--orange);">
+                            <span style="font-size:13px;color:var(--text-muted);">Intense</span>
+                        </div>
+                        <div style="text-align:center;font-size:20px;font-weight:700;color:var(--orange);margin-top:6px;" id="checkin-craving-val">0</div>
+                    </div>
+                    <button class="btn" style="width:100%;margin-top:24px;" onclick="checkinNext(4)">Next</button>
+                </div>
+
+                <!-- Step 4: Reflection -->
+                <div class="checkin-step" id="checkin-step-4" style="display:none;">
+                    <h3 style="margin-bottom:4px;">One Last Thing</h3>
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">What's the biggest thing on your mind today? (optional)</p>
+                    <textarea class="form-input" id="checkin-note" placeholder="A challenge, a win, something you're grateful for..." style="width:100%;height:100px;resize:none;font-family:inherit;font-size:14px;box-sizing:border-box;"></textarea>
+                    <button class="btn btn-green" style="width:100%;margin-top:24px;" onclick="submitCheckin()">Complete Check-in ✓</button>
+                </div>
+
+                <!-- Complete -->
+                <div class="checkin-step" id="checkin-step-done" style="display:none;text-align:center;padding:40px 0;">
+                    <div style="font-size:56px;margin-bottom:16px;">✅</div>
+                    <h3 style="margin-bottom:8px;">Check-in Complete</h3>
+                    <p style="color:var(--text-muted);font-size:14px;margin-bottom:24px;" id="checkin-done-msg">Great job showing up for yourself today.</p>
+                    <button class="btn" onclick="closeCheckin()">Back to Home</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Affirmation -->
+        <div class="card" id="affirmation-card" style="background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(236,72,153,0.05)); border-color:rgba(139,92,246,0.15); cursor:pointer;" onclick="nextAffirmation()">
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+                <div style="font-size:24px;flex-shrink:0;">🌅</div>
+                <div style="flex:1;">
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent-light);margin-bottom:6px;">Daily Affirmation</div>
+                    <div id="affirmation-text" style="font-size:15px;font-style:italic;line-height:1.5;color:var(--text);"></div>
+                </div>
+                <button onclick="event.stopPropagation();toggleFavAffirmation()" id="affirmation-fav-btn" style="background:none;border:none;font-size:20px;cursor:pointer;padding:2px;flex-shrink:0;">♡</button>
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:8px;">Tap for another</div>
+        </div>
+
+        <!-- Next Reward -->
+        <div class="card" id="next-reward-card" style="display:none; background:linear-gradient(135deg, rgba(245,158,11,0.08), rgba(239,68,68,0.04)); border-color:rgba(245,158,11,0.15);">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="font-size:28px;" id="next-reward-icon">🎁</div>
+                <div style="flex:1;">
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--orange);margin-bottom:4px;">Next Reward</div>
+                    <div style="font-size:14px;font-weight:600;color:var(--text);" id="next-reward-name"></div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="next-reward-progress"></div>
+                </div>
+            </div>
+            <div style="height:6px;background:var(--border);border-radius:3px;margin-top:10px;overflow:hidden;">
+                <div id="next-reward-bar" style="height:100%;background:var(--gradient-warm);border-radius:3px;transition:width 0.5s;"></div>
+            </div>
         </div>
 
         <div class="card">
@@ -1575,6 +1748,23 @@
             </div>
             <div id="daily-quote" style="font-size: 16px; font-style: italic; line-height: 1.6; color: var(--text);"></div>
             <div id="daily-quote-author" style="font-size: 13px; color: var(--accent); margin-top: 8px; font-weight: 600;"></div>
+        </div>
+
+        <!-- Daily Challenge -->
+        <div class="card" id="daily-challenge-card" style="background:linear-gradient(135deg, rgba(16,185,129,0.06), rgba(245,158,11,0.04)); border-color:rgba(16,185,129,0.12);">
+            <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--green);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Today's Challenge
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;margin-top:8px;">
+                <div style="font-size:32px;" id="challenge-icon">🚶</div>
+                <div style="flex:1;">
+                    <div style="font-size:15px;font-weight:600;color:var(--text);" id="challenge-text"></div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:3px;" id="challenge-why"></div>
+                </div>
+            </div>
+            <button class="btn btn-green" style="width:100%;margin-top:12px;" id="challenge-btn" onclick="completeChallenge()">Mark Complete</button>
+            <div id="challenge-done" style="display:none;text-align:center;padding:8px 0;color:var(--green);font-weight:600;font-size:14px;">✅ Challenge completed! Well done.</div>
         </div>
 
         <div id="health-timeline-card"></div>
@@ -1625,6 +1815,70 @@
         </div>
     </div>
 
+    <!-- Stats Screen -->
+    <div class="screen" id="screen-stats">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <button class="btn btn-outline btn-small" onclick="showScreen('home')">← Back</button>
+            <h2 style="margin:0;">Your Progress</h2>
+        </div>
+
+        <div class="stats-row">
+            <div class="card stat-card" style="padding:20px;">
+                <div style="font-size:28px;font-weight:800;color:var(--accent);" id="stats-total-days">0</div>
+                <div class="stat-label">Days Sober</div>
+            </div>
+            <div class="card stat-card" style="padding:20px;">
+                <div style="font-size:28px;font-weight:800;color:var(--green);" id="stats-total-pledges">0</div>
+                <div class="stat-label">Pledges Made</div>
+            </div>
+            <div class="card stat-card" style="padding:20px;">
+                <div style="font-size:28px;font-weight:800;color:var(--orange);" id="stats-pledge-rate">0%</div>
+                <div class="stat-label">Pledge Rate</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+            <div class="section-title">Mood Trend (30 Days)</div>
+            <canvas id="stats-mood-chart" width="340" height="160" style="width:100%;height:auto;"></canvas>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px;">
+                <span>30 days ago</span><span>Today</span>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+            <div class="section-title">Craving History</div>
+            <canvas id="stats-craving-chart" width="340" height="140" style="width:100%;height:auto;"></canvas>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px;">
+                <span>Oldest</span><span>Most Recent</span>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+            <div class="section-title">Check-in Summary</div>
+            <div id="stats-checkin-summary" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"></div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+            <div class="section-title">Savings Breakdown</div>
+            <div id="stats-savings-breakdown"></div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+            <div class="section-title">Journal Activity</div>
+            <div id="stats-journal-summary"></div>
+        </div>
+    </div>
+
+    <!-- Journey Timeline Screen -->
+    <div class="screen" id="screen-journey">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <button class="btn btn-outline btn-small" onclick="showScreen('home')">← Back</button>
+            <h2 style="margin:0;">My Journey</h2>
+        </div>
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Every step you've taken, from Day 1 to now.</p>
+        <div id="journey-timeline"></div>
+    </div>
+
     <!-- Pledge Screen (history) -->
     <div class="screen" id="screen-pledge">
         <h2 style="margin-bottom: 4px;">My Pledges</h2>
@@ -1638,6 +1892,23 @@
             <div class="card stat-card">
                 <div class="stat-number" style="color: var(--orange);" id="pledge-streak-count">0</div>
                 <div class="stat-label">Day Streak</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;">
+                <span>Calendar</span>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <button onclick="calendarPrevMonth()" style="background:none;border:none;color:var(--text);font-size:18px;cursor:pointer;padding:4px 8px;">‹</button>
+                    <span id="calendar-month-label" style="font-size:13px;font-weight:600;min-width:110px;text-align:center;"></span>
+                    <button onclick="calendarNextMonth()" style="background:none;border:none;color:var(--text);font-size:18px;cursor:pointer;padding:4px 8px;">›</button>
+                </div>
+            </div>
+            <div id="pledge-calendar" style="margin-top:8px;"></div>
+            <div style="display:flex;gap:16px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);"><span style="width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block;"></span> Pledged</div>
+                <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);"><span style="width:10px;height:10px;border-radius:50%;background:var(--orange);display:inline-block;"></span> Mood logged</div>
+                <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);"><span style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);display:inline-block;"></span> Missed</div>
             </div>
         </div>
 
@@ -1667,6 +1938,31 @@
             </div>
         </div>
 
+        <div class="card" style="margin-bottom:16px;">
+            <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="display:flex;align-items:center;gap:6px;">
+                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    Need Inspiration?
+                </span>
+                <button onclick="shufflePrompt()" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;">Shuffle ↻</button>
+            </div>
+            <div id="journal-prompts" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+            <div style="flex:1;min-width:160px;position:relative;">
+                <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:var(--text-muted);stroke-width:2;position:absolute;left:12px;top:50%;transform:translateY(-50%);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" class="form-input" id="journal-search" placeholder="Search entries..." oninput="filterJournal()" style="font-size:13px;padding:10px 14px 10px 36px;width:100%;box-sizing:border-box;">
+            </div>
+            <div style="display:flex;gap:4px;">
+                <button class="journal-tag-btn selected" data-filter="all" onclick="setJournalFilter('all',this)">All</button>
+                <button class="journal-tag-btn" data-filter="win" onclick="setJournalFilter('win',this)">Win</button>
+                <button class="journal-tag-btn" data-filter="reflection" onclick="setJournalFilter('reflection',this)">Reflect</button>
+                <button class="journal-tag-btn" data-filter="gratitude" onclick="setJournalFilter('gratitude',this)">Grateful</button>
+                <button class="journal-tag-btn" data-filter="milestone" onclick="setJournalFilter('milestone',this)">Mile</button>
+            </div>
+        </div>
+
         <div id="journal-list"></div>
     </div>
 
@@ -1683,6 +1979,8 @@
             <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
                 <button class="btn" onclick="startTetris()">Play Tetris</button>
                 <button class="btn btn-green" onclick="showMeditation()">Meditate</button>
+                <button class="btn" onclick="showGrounding()" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);">Ground Me</button>
+                <button class="btn" onclick="startCravingSurf()" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">Surf the Urge</button>
                 <button class="btn btn-outline" onclick="showScreen('chat')">Talk to Someone</button>
             </div>
 
@@ -1722,6 +2020,27 @@
             <div class="card" style="margin-top:12px; text-align:left;">
                 <div class="section-title">Your Trigger Patterns</div>
                 <div id="trigger-patterns"></div>
+            </div>
+
+            <!-- Emergency Helplines -->
+            <div class="card" style="margin-top:20px; text-align:left;">
+                <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:#ef4444;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Emergency Helplines
+                </div>
+                <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">If you or someone you know is in crisis, reach out now. You are not alone.</p>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+                    <button class="trigger-btn" onclick="showHelplines('all')" id="hl-all" style="border-color:var(--accent);color:var(--accent);">All</button>
+                    <button class="trigger-btn" onclick="showHelplines('us')" id="hl-us">🇺🇸 US</button>
+                    <button class="trigger-btn" onclick="showHelplines('uk')" id="hl-uk">🇬🇧 UK</button>
+                    <button class="trigger-btn" onclick="showHelplines('au')" id="hl-au">🇦🇺 AU</button>
+                    <button class="trigger-btn" onclick="showHelplines('ca')" id="hl-ca">🇨🇦 CA</button>
+                    <button class="trigger-btn" onclick="showHelplines('ae')" id="hl-ae">🇦🇪 UAE</button>
+                    <button class="trigger-btn" onclick="showHelplines('in')" id="hl-in">🇮🇳 India</button>
+                    <button class="trigger-btn" onclick="showHelplines('za')" id="hl-za">🇿🇦 SA</button>
+                    <button class="trigger-btn" onclick="showHelplines('intl')" id="hl-intl">🌍 Intl</button>
+                </div>
+                <div id="helpline-list"></div>
             </div>
         </div>
 
@@ -1785,6 +2104,87 @@
             </div>
         </div>
 
+        <!-- Grounding Exercise -->
+        <div id="grounding-area" style="display:none;">
+            <div style="max-width:480px;margin:0 auto;padding:20px 0;">
+                <div style="text-align:center;margin-bottom:20px;">
+                    <button class="btn btn-outline btn-small" onclick="closeGrounding()">← Back</button>
+                </div>
+
+                <!-- Grounding Intro -->
+                <div id="grounding-intro" style="text-align:center;">
+                    <div style="font-size:48px;margin-bottom:16px;">🌿</div>
+                    <h2 style="margin-bottom:8px;">Grounding Exercises</h2>
+                    <p style="color:var(--text-muted);font-size:14px;margin-bottom:24px;">When cravings hit, your mind races. These techniques bring you back to the present moment.</p>
+                    <div style="display:flex;flex-direction:column;gap:12px;">
+                        <button class="btn" onclick="startGrounding('54321')" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);padding:18px;font-size:15px;">
+                            🖐 5-4-3-2-1 Sensory Grounding
+                        </button>
+                        <button class="btn" onclick="startGrounding('box')" style="background:linear-gradient(135deg,#0ea5e9,#6366f1);padding:18px;font-size:15px;">
+                            📦 Box Breathing
+                        </button>
+                        <button class="btn" onclick="startGrounding('body')" style="background:linear-gradient(135deg,#10b981,#059669);padding:18px;font-size:15px;">
+                            🧘 Body Scan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 5-4-3-2-1 Exercise -->
+                <div id="grounding-54321" style="display:none;">
+                    <div style="text-align:center;margin-bottom:20px;">
+                        <div style="font-size:13px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:1px;">5-4-3-2-1 Technique</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Focus on your senses to anchor yourself in the present</div>
+                    </div>
+                    <div id="grounding-54321-steps"></div>
+                    <div id="grounding-54321-complete" style="display:none;text-align:center;padding:30px 0;">
+                        <div style="font-size:48px;margin-bottom:12px;">🌟</div>
+                        <h3 style="margin-bottom:8px;">You're grounded.</h3>
+                        <p style="color:var(--text-muted);font-size:14px;margin-bottom:20px;">The craving has less power over you now. You're back in control.</p>
+                        <button class="btn btn-green" onclick="closeGrounding()">Done</button>
+                    </div>
+                </div>
+
+                <!-- Box Breathing -->
+                <div id="grounding-box" style="display:none;text-align:center;">
+                    <div style="font-size:13px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;">Box Breathing</div>
+                    <div style="position:relative;width:200px;height:200px;margin:0 auto 24px;">
+                        <svg width="200" height="200" viewBox="0 0 200 200">
+                            <rect x="20" y="20" width="160" height="160" rx="16" fill="none" stroke="var(--border)" stroke-width="3"/>
+                            <rect x="20" y="20" width="160" height="160" rx="16" fill="none" stroke="var(--accent)" stroke-width="3" id="box-breath-path" stroke-dasharray="640" stroke-dashoffset="640" style="transition:stroke-dashoffset linear;"/>
+                        </svg>
+                        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+                            <div id="box-breath-instruction" style="font-size:18px;font-weight:700;color:var(--accent);">Ready</div>
+                            <div id="box-breath-count" style="font-size:36px;font-weight:800;color:var(--text);margin-top:4px;"></div>
+                        </div>
+                    </div>
+                    <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;" id="box-breath-rounds">4 rounds remaining</div>
+                    <button class="btn" onclick="startBoxBreathing()" id="box-breath-start" style="background:linear-gradient(135deg,#0ea5e9,#6366f1);">Start</button>
+                    <div id="box-breath-done" style="display:none;">
+                        <div style="font-size:48px;margin-bottom:12px;">😌</div>
+                        <h3 style="margin-bottom:8px;">Calm restored.</h3>
+                        <p style="color:var(--text-muted);font-size:14px;margin-bottom:20px;">Your nervous system is settling. The urge is passing.</p>
+                        <button class="btn btn-green" onclick="closeGrounding()">Done</button>
+                    </div>
+                </div>
+
+                <!-- Body Scan -->
+                <div id="grounding-body" style="display:none;text-align:center;">
+                    <div style="font-size:13px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;">Body Scan</div>
+                    <div style="font-size:56px;margin-bottom:16px;" id="body-scan-emoji">🦶</div>
+                    <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:6px;" id="body-scan-part">Feet</div>
+                    <div style="font-size:14px;color:var(--text-muted);max-width:300px;margin:0 auto 20px;" id="body-scan-instruction">Notice the feeling in your feet. Are they warm? Cold? Tense? Just observe without judgement.</div>
+                    <div style="display:flex;justify-content:center;gap:6px;margin-bottom:20px;" id="body-scan-dots"></div>
+                    <button class="btn btn-green" onclick="nextBodyScan()" id="body-scan-next">I've noticed → Next</button>
+                    <div id="body-scan-done" style="display:none;">
+                        <div style="font-size:48px;margin-bottom:12px;">✨</div>
+                        <h3 style="margin-bottom:8px;">Full body awareness.</h3>
+                        <p style="color:var(--text-muted);font-size:14px;margin-bottom:20px;">You've reconnected with your body. The craving is just a feeling — and it will pass.</p>
+                        <button class="btn btn-green" onclick="closeGrounding()">Done</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="tetris-game" class="tetris-container" style="display:none;">
             <div class="tetris-header">
                 <button class="btn btn-outline btn-small" onclick="stopTetris()">Back</button>
@@ -1804,8 +2204,8 @@
 
     <!-- Chat Screen -->
     <div class="screen" id="screen-chat">
-        <h2 style="margin-bottom: 4px;">Support Chat</h2>
-        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;">A safe space to talk through what you're feeling.</p>
+        <h2 style="margin-bottom: 4px;">Support Chat <span id="ai-badge" style="display:none;font-size:11px;background:var(--gradient-accent);padding:2px 8px;border-radius:20px;vertical-align:middle;font-weight:600;color:white;">AI</span></h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;" id="chat-subtitle">A safe space to talk through what you're feeling.</p>
         <div class="card" style="padding: 0 16px;">
             <div class="chat-messages" id="chat-messages">
                 <div class="chat-msg bot">Hey there! I'm here for you. How are you feeling right now? You can tell me anything — no judgement here. 💚</div>
@@ -1974,6 +2374,41 @@
         </div>
 
         <div class="card" style="margin-top: 16px;">
+            <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--green);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                Healthy Habits
+            </div>
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Replace drinking with positive routines. Check off each day.</p>
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <input type="text" class="form-input" id="habit-input" placeholder="e.g., Exercise, Reading, Journaling..." style="flex:1;font-size:13px;padding:10px 14px;">
+                <button class="btn btn-small btn-green" onclick="addHabit()">Add</button>
+            </div>
+            <div id="habit-list"></div>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
+            <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--orange);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+                My Rewards
+            </div>
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Set treats for yourself at milestones. You deserve to celebrate!</p>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+                <select id="reward-days" class="form-input" style="width:110px;font-size:13px;padding:10px;">
+                    <option value="7">7 days</option>
+                    <option value="14">14 days</option>
+                    <option value="30">30 days</option>
+                    <option value="60">60 days</option>
+                    <option value="90">90 days</option>
+                    <option value="180">180 days</option>
+                    <option value="365">1 year</option>
+                </select>
+                <input type="text" class="form-input" id="reward-input" placeholder="e.g., New shoes, spa day..." style="flex:1;font-size:13px;padding:10px 14px;">
+                <button class="btn btn-small" style="background:var(--gradient-warm);" onclick="addReward()">Add</button>
+            </div>
+            <div id="reward-list"></div>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
             <div class="section-title">Notifications</div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
@@ -2011,9 +2446,35 @@
         </div>
 
         <div class="card" style="margin-top: 16px;">
-            <div class="section-title">Share Your Journey</div>
-            <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 16px;">Connect your Instagram so others on Sober Pledge can follow your journey and cheer you on.</p>
-            <button class="btn btn-outline btn-small" onclick="copyProfileLink()">Copy my profile link</button>
+            <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--green);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Accountability Partner
+            </div>
+            <p style="color: var(--text-muted); font-size: 13px; line-height: 1.5; margin-bottom: 14px;">Share your progress with someone who supports your journey. They'll see your streak, milestones, and pledges.</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                <button class="btn btn-small btn-green" onclick="shareProgress()">
+                    <span style="display:flex;align-items:center;gap:5px;">
+                        <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                        Share My Progress
+                    </span>
+                </button>
+                <button class="btn btn-small btn-outline" onclick="copyProfileLink()">Copy Link</button>
+            </div>
+            <div id="accountability-status" style="font-size:12px;color:var(--text-muted);"></div>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
+            <div class="section-title" style="display:flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z"/><circle cx="12" cy="15" r="2"/></svg>
+                AI Coach (Powered by Claude)
+            </div>
+            <p style="color: var(--text-muted); font-size: 13px; line-height: 1.5; margin-bottom: 12px;">Upgrade your Support Chat with a real AI sobriety coach. Enter your Anthropic API key to enable AI-powered responses.</p>
+            <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+                <input type="password" class="form-input" id="ai-api-key" placeholder="sk-ant-..." style="flex:1;font-size:13px;">
+                <button class="btn btn-small" onclick="saveAIKey()">Save</button>
+            </div>
+            <div id="ai-key-status" style="font-size:12px;color:var(--text-muted);margin-bottom:8px;"></div>
+            <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">Your key is stored locally and never shared. Get one at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);">console.anthropic.com</a></p>
         </div>
 
         <div class="card" style="margin-top: 16px;">
@@ -2043,10 +2504,69 @@
     </div>
 
     <!-- Floating Chat Button -->
+    <!-- SOS Panic Button -->
+    <button class="fab-sos" onclick="openPanicMode()" title="Emergency help">
+        SOS
+    </button>
+
     <button class="fab-chat" onclick="showScreen('chat')" title="Talk to someone">
         <div class="fab-pulse"></div>
         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     </button>
+
+    <!-- Panic Mode Overlay -->
+    <div id="panic-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:linear-gradient(180deg,#1a0a0a,#0a0f1a);overflow-y:auto;">
+        <div style="max-width:480px;margin:0 auto;padding:20px;padding-bottom:40px;">
+            <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+                <button onclick="closePanicMode()" style="background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;padding:6px 16px;font-size:13px;cursor:pointer;font-family:inherit;">Close ✕</button>
+            </div>
+
+            <div style="text-align:center;margin-bottom:24px;">
+                <div style="font-size:48px;margin-bottom:8px;">🛡️</div>
+                <h2 style="color:#fff;margin-bottom:6px;">You're Safe Here</h2>
+                <p style="color:rgba(255,255,255,0.6);font-size:14px;">Take a breath. You reached out — that takes courage.</p>
+            </div>
+
+            <!-- Quick Breathing -->
+            <div class="card" style="background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.2);text-align:center;margin-bottom:12px;">
+                <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;">BREATHE WITH ME</div>
+                <div id="panic-breath-circle" style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(139,92,246,0.3));margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#fff;transition:transform 4s ease-in-out;">
+                    Breathe in...
+                </div>
+                <button onclick="startPanicBreathing()" class="btn btn-small" style="margin-top:12px;background:var(--gradient-main);" id="panic-breath-btn">Start Breathing</button>
+            </div>
+
+            <!-- Call SOS Contacts -->
+            <div class="card" style="margin-bottom:12px;" id="panic-sos-contacts">
+                <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px;">📞 CALL SOMEONE NOW</div>
+                <div id="panic-contact-list"></div>
+            </div>
+
+            <!-- Helplines -->
+            <div class="card" style="margin-bottom:12px;">
+                <div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:10px;">🆘 CRISIS HELPLINES</div>
+                <div id="panic-helplines"></div>
+            </div>
+
+            <!-- Your Reasons -->
+            <div class="card" style="margin-bottom:12px;">
+                <div style="font-size:13px;font-weight:700;color:#ec4899;margin-bottom:10px;">💜 WHY YOU QUIT</div>
+                <div id="panic-reasons"></div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                <button onclick="closePanicMode();showScreen('urge');showGrounding()" class="btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);padding:16px;font-size:14px;">🌿 Grounding</button>
+                <button onclick="closePanicMode();showScreen('urge');showMeditation()" class="btn btn-green" style="padding:16px;font-size:14px;">🧘 Meditate</button>
+                <button onclick="closePanicMode();showScreen('urge');startTetris()" class="btn" style="padding:16px;font-size:14px;">🎮 Play Tetris</button>
+                <button onclick="closePanicMode();showScreen('chat')" class="btn btn-outline" style="padding:16px;font-size:14px;">💬 Talk to AI</button>
+            </div>
+
+            <div style="text-align:center;padding:16px;color:rgba(255,255,255,0.4);font-size:13px;">
+                This feeling will pass. You are stronger than you think.
+            </div>
+        </div>
+    </div>
 
     <!-- Navigation -->
     <nav class="nav">
@@ -2139,6 +2659,51 @@
                 <button class="btn btn-green" onclick="confirmDrink()">Reset My Counter</button>
             </div>
             <button class="btn btn-outline btn-small" onclick="closeDrinkModal()" style="margin-top:12px;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Craving Surf Modal -->
+<div class="modal-overlay" id="craving-surf-modal">
+    <div class="modal" style="text-align:center; max-width:420px;">
+        <div id="surf-content">
+            <div id="surf-timer-display" style="font-size:64px; font-weight:800; color:var(--accent); margin:10px 0;">20:00</div>
+            <div id="surf-phase" style="font-size:18px; font-weight:600; margin-bottom:8px; color:var(--text);">Get ready to surf</div>
+            <div id="surf-guidance" style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:20px; min-height:60px;">Cravings are like waves — they rise, peak, and fall. This timer will guide you through the next 20 minutes as the wave passes.</div>
+
+            <div id="surf-wave-bar" style="width:100%; height:8px; background:var(--border); border-radius:4px; overflow:hidden; margin-bottom:20px;">
+                <div id="surf-wave-fill" style="width:0%; height:100%; background:var(--gradient-warm); border-radius:4px; transition:width 1s linear;"></div>
+            </div>
+
+            <div id="surf-intensity" style="margin-bottom:20px;">
+                <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">How intense is the craving right now?</div>
+                <div style="display:flex; justify-content:center; gap:6px;">
+                    <button class="btn btn-small btn-outline" onclick="logSurfIntensity(1)" style="min-width:36px;">1</button>
+                    <button class="btn btn-small btn-outline" onclick="logSurfIntensity(2)" style="min-width:36px;">2</button>
+                    <button class="btn btn-small btn-outline" onclick="logSurfIntensity(3)" style="min-width:36px;">3</button>
+                    <button class="btn btn-small btn-outline" onclick="logSurfIntensity(4)" style="min-width:36px;">4</button>
+                    <button class="btn btn-small btn-outline" onclick="logSurfIntensity(5)" style="min-width:36px;">5</button>
+                    <button class="btn btn-small btn-outline" onclick="logSurfIntensity(6)" style="min-width:36px;">6</button>
+                    <button class="btn btn-small btn-outline" onclick="logSurfIntensity(7)" style="min-width:36px;">7</button>
+                    <button class="btn btn-small btn-outline" onclick="logSurfIntensity(8)" style="min-width:36px;">8</button>
+                    <button class="btn btn-small btn-outline" onclick="logSurfIntensity(9)" style="min-width:36px;">9</button>
+                    <button class="btn btn-small btn-outline" onclick="logSurfIntensity(10)" style="min-width:36px;">10</button>
+                </div>
+                <div id="surf-intensity-label" style="font-size:13px; color:var(--accent); margin-top:6px;"></div>
+            </div>
+
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button class="btn" id="surf-start-btn" onclick="toggleCravingSurf()">Start Surfing</button>
+                <button class="btn btn-outline" onclick="closeCravingSurf()">Close</button>
+            </div>
+        </div>
+
+        <div id="surf-complete" style="display:none;">
+            <div style="font-size:48px; margin-bottom:12px;">🏄</div>
+            <h2 style="margin-bottom:8px; color:var(--green);">You surfed it!</h2>
+            <p style="color:var(--text-muted); font-size:15px; line-height:1.6; margin-bottom:8px;">The wave has passed. You stayed strong for the full 20 minutes.</p>
+            <div id="surf-summary" style="font-size:13px; color:var(--text-muted); margin-bottom:20px;"></div>
+            <button class="btn btn-green" onclick="closeCravingSurf()">Done</button>
         </div>
     </div>
 </div>
@@ -2241,6 +2806,7 @@ function initApp() {
     let streakDays = Math.max(0, _rawDays);
 
     animateCounter('streak-days', streakDays, 1000);
+    startLiveTimer();
 
     // Streak message
     const messages = [
@@ -2321,19 +2887,29 @@ function initApp() {
     // Charts
     renderMoodChart();
     renderPledgeWeekDots();
+    renderPledgeCalendar();
+    showHelplines('all');
+    renderCheckinPrompt();
+    renderAffirmation();
+    renderDailyChallenge();
 
     // Milestones
     renderMilestones(streakDays);
     renderJournal();
+    renderJournalPrompts();
     renderProfile();
     renderVisionBoard();
     renderCommunityFeed();
     renderBadges();
+    renderHabits();
+    renderRewards();
+    renderNextReward();
     updateThemeUI();
     renderTriggerPatterns();
     renderSOSContacts();
     renderSOSUrge();
     updateNotifUI();
+    updateAIChatUI();
     checkPledgeReminder();
 }
 
@@ -2345,6 +2921,7 @@ function showScreen(name) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('screen-' + name).classList.add('active');
     document.getElementById('nav-' + name)?.classList.add('active');
+    if (name === 'stats') renderStats();
 }
 
 // =========================================
@@ -2697,21 +3274,97 @@ function renderMilestones(currentDays) {
     ];
 
     const container = document.getElementById('milestones');
-    container.innerHTML = milestones.map(m => `
-        <div class="milestone ${currentDays >= m.days ? 'milestone-earned' : 'milestone-locked'}">
-            <div class="milestone-icon">${m.icon}</div>
-            <div>
-                <div class="milestone-name">${m.name}</div>
-                <div class="milestone-desc">${currentDays >= m.days ? m.desc : m.days + ' days — keep going!'}</div>
+    container.innerHTML = milestones.map(m => {
+        const earned = currentDays >= m.days;
+        return `
+        <div class="milestone ${earned ? 'milestone-earned' : 'milestone-locked'}" style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div class="milestone-icon">${m.icon}</div>
+                <div>
+                    <div class="milestone-name">${m.name}</div>
+                    <div class="milestone-desc">${earned ? m.desc : m.days + ' days — keep going!'}</div>
+                </div>
             </div>
-        </div>
-    `).join('');
+            ${earned ? '<button onclick="shareMilestone(\'' + m.icon + '\',\'' + m.name + '\',' + m.days + ')" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;color:var(--accent);font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap;">Share</button>' : ''}
+        </div>`;
+    }).join('');
 }
 
 // =========================================
 // JOURNAL
 // =========================================
 let selectedJournalTag = 'win';
+
+const journalPrompts = [
+    { tag: 'reflection', prompt: "What's one thing sobriety has given you that you didn't expect?" },
+    { tag: 'gratitude', prompt: "Name 3 things you're grateful for today — big or small." },
+    { tag: 'win', prompt: "What's a moment this week where you felt proud of yourself?" },
+    { tag: 'reflection', prompt: "What's the hardest part of your recovery right now? How are you handling it?" },
+    { tag: 'gratitude', prompt: "Who has supported you most in your journey? What would you say to them?" },
+    { tag: 'win', prompt: "Describe a situation you handled sober that you couldn't have before." },
+    { tag: 'reflection', prompt: "What triggers have you noticed this week? What patterns do you see?" },
+    { tag: 'gratitude', prompt: "What's something your body can do now that it couldn't when you were drinking?" },
+    { tag: 'reflection', prompt: "If your future self could see you right now, what would they say?" },
+    { tag: 'win', prompt: "What's one new hobby or interest you've discovered in sobriety?" },
+    { tag: 'reflection', prompt: "What emotions have been coming up lately? How do you sit with them?" },
+    { tag: 'gratitude', prompt: "What's one relationship that has improved since you got sober?" },
+    { tag: 'reflection', prompt: "Write about a craving you overcame. What worked? What didn't?" },
+    { tag: 'win', prompt: "What's something you did today that required courage?" },
+    { tag: 'gratitude', prompt: "What's one small pleasure you've rediscovered without alcohol?" },
+    { tag: 'reflection', prompt: "How has your sleep changed since getting sober?" },
+    { tag: 'milestone', prompt: "Look at how far you've come. Write your journey in 3 sentences." },
+    { tag: 'reflection', prompt: "What would you tell someone who's on Day 1 right now?" },
+    { tag: 'win', prompt: "What social event have you navigated sober recently?" },
+    { tag: 'gratitude', prompt: "What's one thing about this morning that felt good?" },
+    { tag: 'reflection', prompt: "What does 'freedom' mean to you in the context of sobriety?" },
+    { tag: 'reflection', prompt: "What's a lie that alcohol used to tell you? What's the truth?" },
+    { tag: 'win', prompt: "When did you last feel genuinely happy? Describe that moment." },
+    { tag: 'gratitude', prompt: "Write a thank-you note to your sober self." },
+    { tag: 'reflection', prompt: "What are you most afraid of in recovery? Can you face it?" },
+    { tag: 'milestone', prompt: "Compare who you were 30 days ago to who you are now." },
+    { tag: 'win', prompt: "What's one decision you made recently that past-you wouldn't have?" },
+    { tag: 'reflection', prompt: "How do you cope with boredom without alcohol?" },
+    { tag: 'gratitude', prompt: "What's a meal you've truly enjoyed lately, with full presence?" },
+    { tag: 'win', prompt: "Name one boundary you've set that protects your sobriety." }
+];
+
+let _promptOffset = 0;
+
+function renderJournalPrompts() {
+    const container = document.getElementById('journal-prompts');
+    if (!container) return;
+    const today = new Date();
+    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+    const startIdx = (dayOfYear + _promptOffset) % journalPrompts.length;
+    const prompts = [];
+    for (let i = 0; i < 3; i++) {
+        prompts.push(journalPrompts[(startIdx + i) % journalPrompts.length]);
+    }
+
+    const tagColors = { win: 'var(--green)', reflection: 'var(--accent)', gratitude: 'var(--orange)', milestone: '#8b5cf6' };
+
+    container.innerHTML = prompts.map(p =>
+        '<button onclick="usePrompt(\'' + p.prompt.replace(/'/g, "\\'") + '\',\'' + p.tag + '\')" style="background:none;border:1px solid var(--border);border-radius:10px;padding:10px 14px;text-align:left;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px;transition:border-color 0.2s;">' +
+        '<span style="width:6px;height:6px;border-radius:50%;background:' + (tagColors[p.tag] || 'var(--accent)') + ';flex-shrink:0;"></span>' +
+        p.prompt + '</button>'
+    ).join('');
+}
+
+function usePrompt(prompt, tag) {
+    document.getElementById('journal-input').value = prompt + '\n\n';
+    document.getElementById('journal-input').focus();
+    selectJournalTag(tag);
+    document.querySelectorAll('.journal-tag-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.tag === tag);
+    });
+    // Scroll to textarea
+    document.getElementById('journal-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function shufflePrompt() {
+    _promptOffset += 3;
+    renderJournalPrompts();
+}
 
 function selectJournalTag(tag) {
     selectedJournalTag = tag;
@@ -2765,6 +3418,19 @@ function deleteJournalEntry(index) {
     renderJournal();
 }
 
+let _journalFilter = 'all';
+
+function setJournalFilter(filter, btn) {
+    _journalFilter = filter;
+    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    renderJournal();
+}
+
+function filterJournal() {
+    renderJournal();
+}
+
 function renderJournal() {
     const data = getData();
     if (!data) return;
@@ -2773,18 +3439,43 @@ function renderJournal() {
     const container = document.getElementById('journal-list');
     if (!container) return;
 
+    const searchTerm = (document.getElementById('journal-search')?.value || '').toLowerCase().trim();
+
+    let entries = data.journal.map((e, i) => ({ ...e, _idx: i }));
+
+    // Filter by tag
+    if (_journalFilter !== 'all') {
+        entries = entries.filter(e => (e.tag || 'win') === _journalFilter);
+    }
+
+    // Filter by search
+    if (searchTerm) {
+        entries = entries.filter(e => (e.text || '').toLowerCase().includes(searchTerm));
+    }
+
     if (!data.journal.length) {
         container.innerHTML = '<div class="empty-state">No journal entries yet. Start documenting your journey above.</div>';
+        return;
+    }
+
+    if (entries.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">No entries match your search.</div>';
         return;
     }
 
     const tagLabels = { win: 'Win', reflection: 'Reflection', gratitude: 'Gratitude', milestone: 'Milestone' };
     const tagClasses = { win: 'journal-tag-win', reflection: 'journal-tag-reflection', gratitude: 'journal-tag-gratitude', milestone: 'journal-tag-milestone' };
 
-    container.innerHTML = data.journal.map((entry, i) => {
+    container.innerHTML = entries.map(entry => {
         const dateStr = new Date(entry.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         const tag = entry.tag || 'win';
         const photoHtml = entry.photo ? '<img class="journal-entry-photo" src="' + entry.photo + '">' : '';
+
+        let displayText = escapeHtml(entry.text);
+        if (searchTerm) {
+            const regex = new RegExp('(' + searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+            displayText = displayText.replace(regex, '<mark style="background:rgba(99,102,241,0.3);color:var(--text);border-radius:2px;padding:0 2px;">$1</mark>');
+        }
 
         return `
             <div class="journal-entry">
@@ -2792,10 +3483,10 @@ function renderJournal() {
                     <span class="journal-entry-tag ${tagClasses[tag]}">${tagLabels[tag]}</span>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span class="journal-entry-date">${dateStr}</span>
-                        <button class="journal-entry-delete" onclick="deleteJournalEntry(${i})">×</button>
+                        <button class="journal-entry-delete" onclick="deleteJournalEntry(${entry._idx})">×</button>
                     </div>
                 </div>
-                <div class="journal-entry-text">${escapeHtml(entry.text)}</div>
+                <div class="journal-entry-text">${displayText}</div>
                 ${photoHtml}
             </div>`;
     }).join('');
@@ -2805,6 +3496,143 @@ function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+}
+
+// =========================================
+// AI KEY MANAGEMENT
+// =========================================
+function saveAIKey() {
+    const key = document.getElementById('ai-api-key').value.trim();
+    const status = document.getElementById('ai-key-status');
+    if (!key) {
+        localStorage.removeItem('soberpledge-ai-key');
+        status.textContent = 'AI coach disabled. Using built-in responses.';
+        status.style.color = 'var(--text-muted)';
+        updateAIChatUI();
+        return;
+    }
+    if (!key.startsWith('sk-ant-')) {
+        status.textContent = 'Invalid key format. Should start with sk-ant-';
+        status.style.color = 'var(--red)';
+        return;
+    }
+    localStorage.setItem('soberpledge-ai-key', key);
+    status.textContent = 'AI coach enabled! Your chat is now powered by Claude.';
+    status.style.color = 'var(--green)';
+    updateAIChatUI();
+}
+
+function getAIKey() {
+    return localStorage.getItem('soberpledge-ai-key') || '';
+}
+
+function updateAIChatUI() {
+    const badge = document.getElementById('ai-badge');
+    const subtitle = document.getElementById('chat-subtitle');
+    const keyInput = document.getElementById('ai-api-key');
+    const status = document.getElementById('ai-key-status');
+    const hasKey = !!getAIKey();
+
+    if (badge) badge.style.display = hasKey ? 'inline' : 'none';
+    if (subtitle) subtitle.textContent = hasKey
+        ? 'Your personal AI sobriety coach, powered by Claude.'
+        : 'A safe space to talk through what you\'re feeling.';
+    if (keyInput && getAIKey()) keyInput.value = '••••••••••••••••';
+    if (status && hasKey) {
+        status.textContent = 'AI coach is active.';
+        status.style.color = 'var(--green)';
+    }
+}
+
+let aiChatHistory = [];
+
+function buildAISystemPrompt() {
+    const data = getData();
+    const streakDays = data ? getStreakDays(data) : 0;
+    const name = data ? data.name : 'friend';
+    const recentMoods = data && data.moods ? data.moods.slice(-5).map(m => m.mood).join(', ') : 'unknown';
+
+    return `You are a compassionate, evidence-based sobriety coach inside the Sober Pledge app. Your name is Coach.
+
+ABOUT THE USER:
+- Name: ${name}
+- Current streak: ${streakDays} days sober
+- Recent moods: ${recentMoods}
+
+YOUR APPROACH:
+- Be warm, empathetic, and non-judgmental — never preachy or clinical
+- Use motivational interviewing techniques and CBT-based coping strategies
+- Validate feelings before offering solutions
+- Keep responses concise (2-4 sentences typically, longer only when guiding an exercise)
+- Reference their streak and progress to reinforce commitment
+- If they mention a craving, guide them through urge surfing or suggest the in-app tools (Urge Fighter, breathing exercises, grounding)
+- If they mention relapse, respond with compassion — never shame. A slip is not a failure.
+- If they express suicidal thoughts or self-harm, immediately direct them to crisis resources: 988 Suicide & Crisis Lifeline (US), Samaritans 116 123 (UK), or their local emergency number
+- Do NOT diagnose medical conditions or recommend medication changes
+- Do NOT encourage any substance use, even "just one drink"
+- You can suggest journaling, breathing exercises, community connection, and other in-app features
+- Use a conversational, caring tone — like a trusted sponsor or counselor who genuinely cares`;
+}
+
+async function sendAIMessage(userText) {
+    const container = document.getElementById('chat-messages');
+    const apiKey = getAIKey();
+
+    aiChatHistory.push({ role: 'user', content: userText });
+
+    // Keep conversation history manageable (last 20 messages)
+    if (aiChatHistory.length > 20) {
+        aiChatHistory = aiChatHistory.slice(-20);
+    }
+
+    // Show typing indicator
+    container.innerHTML += '<div class="chat-msg bot" id="typing-indicator" style="opacity:0.5;">Coach is thinking...</div>';
+    container.scrollTop = container.scrollHeight;
+
+    try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+                model: 'claude-haiku-4-5-20251001',
+                max_tokens: 512,
+                system: buildAISystemPrompt(),
+                messages: aiChatHistory
+            })
+        });
+
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) indicator.remove();
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error?.message || 'API request failed');
+        }
+
+        const result = await response.json();
+        const aiText = result.content[0].text;
+
+        aiChatHistory.push({ role: 'assistant', content: aiText });
+        container.innerHTML += `<div class="chat-msg bot" style="animation:fadeIn 0.3s ease;">${escapeHtml(aiText).replace(/\n/g, '<br>')}</div>`;
+    } catch (err) {
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) indicator.remove();
+
+        console.error('AI chat error:', err);
+        // Fall back to keyword matching
+        const fallback = getChatResponse(userText.toLowerCase());
+        container.innerHTML += `<div class="chat-msg bot" style="animation:fadeIn 0.3s ease;">${fallback}</div>`;
+
+        if (err.message.includes('auth') || err.message.includes('key') || err.message.includes('401')) {
+            container.innerHTML += '<div class="chat-msg bot" style="font-size:12px;opacity:0.7;">AI coach couldn\'t connect. Check your API key in Profile settings.</div>';
+        }
+    }
+    container.scrollTop = container.scrollHeight;
 }
 
 // =========================================
@@ -2895,6 +3723,12 @@ function sendChat() {
     input.value = '';
     chatContext.messageCount++;
 
+    // Route to AI if key is available
+    if (getAIKey()) {
+        sendAIMessage(text);
+        return;
+    }
+
     // Typing indicator
     container.innerHTML += '<div class="chat-msg bot" id="typing-indicator" style="opacity:0.5;">typing...</div>';
     container.scrollTop = container.scrollHeight;
@@ -2962,6 +3796,120 @@ function getChatResponse(text) {
 
     const defaults = chatResponses.default;
     return defaults[Math.floor(Math.random() * defaults.length)];
+}
+
+// =========================================
+// CRAVING SURFING TIMER
+// =========================================
+let surfTimer = null;
+let surfSeconds = 1200; // 20 minutes
+let surfRunning = false;
+let surfIntensityLog = [];
+
+const surfPhases = [
+    { start: 1200, end: 961, phase: 'Rising Wave', guidance: 'The craving is building. This is normal. Notice where you feel it in your body — your stomach, chest, throat? Don\'t fight it. Just observe it like watching a wave from the shore.' },
+    { start: 960, end: 721, phase: 'Building', guidance: 'The urge may feel stronger now. Remember: you are not your craving. It\'s just a sensation passing through. Breathe slowly — in for 4, out for 6. Your body is safe.' },
+    { start: 720, end: 481, phase: 'Approaching Peak', guidance: 'This is often the hardest part. The craving may feel overwhelming, but it CANNOT hurt you. It will peak and fall. Stay curious about the sensation instead of afraid of it.' },
+    { start: 480, end: 301, phase: 'Cresting', guidance: 'You\'re near or at the peak. This is the top of the wave. From here, it only gets easier. You are doing something incredibly brave right now. Most cravings peak between 10-20 minutes.' },
+    { start: 300, end: 121, phase: 'Falling Wave', guidance: 'Notice anything shifting? The intensity often starts dropping now. Your brain is recalibrating. Each craving you surf makes the next one weaker — you\'re literally rewiring your neural pathways.' },
+    { start: 120, end: 0, phase: 'Fading', guidance: 'Almost there. The wave is passing. You\'ve proven you\'re stronger than any craving. Take a deep breath and feel the calm returning. You did this.' }
+];
+
+function startCravingSurf() {
+    surfSeconds = 1200;
+    surfRunning = false;
+    surfIntensityLog = [];
+    document.getElementById('craving-surf-modal').classList.add('active');
+    document.getElementById('surf-content').style.display = 'block';
+    document.getElementById('surf-complete').style.display = 'none';
+    document.getElementById('surf-start-btn').textContent = 'Start Surfing';
+    document.getElementById('surf-timer-display').textContent = '20:00';
+    document.getElementById('surf-wave-fill').style.width = '0%';
+    document.getElementById('surf-phase').textContent = 'Get ready to surf';
+    document.getElementById('surf-guidance').textContent = 'Cravings are like waves — they rise, peak, and fall. This timer will guide you through the next 20 minutes as the wave passes.';
+    document.getElementById('surf-intensity-label').textContent = '';
+}
+
+function toggleCravingSurf() {
+    if (surfRunning) {
+        clearInterval(surfTimer);
+        surfRunning = false;
+        document.getElementById('surf-start-btn').textContent = 'Resume';
+    } else {
+        surfRunning = true;
+        document.getElementById('surf-start-btn').textContent = 'Pause';
+        surfTimer = setInterval(tickSurf, 1000);
+    }
+}
+
+function tickSurf() {
+    surfSeconds--;
+    if (surfSeconds <= 0) {
+        clearInterval(surfTimer);
+        surfRunning = false;
+        completeCravingSurf();
+        return;
+    }
+
+    const mins = Math.floor(surfSeconds / 60);
+    const secs = surfSeconds % 60;
+    document.getElementById('surf-timer-display').textContent = mins + ':' + String(secs).padStart(2, '0');
+
+    const progress = ((1200 - surfSeconds) / 1200) * 100;
+    document.getElementById('surf-wave-fill').style.width = progress + '%';
+
+    for (const p of surfPhases) {
+        if (surfSeconds <= p.start && surfSeconds >= p.end) {
+            document.getElementById('surf-phase').textContent = p.phase;
+            document.getElementById('surf-guidance').textContent = p.guidance;
+            break;
+        }
+    }
+}
+
+function logSurfIntensity(level) {
+    surfIntensityLog.push({ time: 1200 - surfSeconds, level: level });
+    const labels = ['', 'Barely there', 'Mild', 'Noticeable', 'Moderate', 'Strong', 'Intense', 'Very intense', 'Powerful', 'Overwhelming', 'Maximum'];
+    document.getElementById('surf-intensity-label').textContent = labels[level] + ' (' + level + '/10)';
+
+    // Highlight selected button
+    document.querySelectorAll('#surf-intensity button').forEach((btn, i) => {
+        btn.className = (i + 1 === level) ? 'btn btn-small' : 'btn btn-small btn-outline';
+    });
+}
+
+function completeCravingSurf() {
+    document.getElementById('surf-content').style.display = 'none';
+    document.getElementById('surf-complete').style.display = 'block';
+
+    let summary = '';
+    if (surfIntensityLog.length >= 2) {
+        const first = surfIntensityLog[0].level;
+        const last = surfIntensityLog[surfIntensityLog.length - 1].level;
+        const peak = Math.max(...surfIntensityLog.map(l => l.level));
+        summary = 'Your craving went from ' + first + '/10 to ' + last + '/10 (peaked at ' + peak + '/10). The wave always passes.';
+    } else {
+        summary = 'Next time, rate your intensity throughout to see how the craving wave rises and falls.';
+    }
+    document.getElementById('surf-summary').textContent = summary;
+
+    // Save to trigger log
+    const data = getData();
+    if (data) {
+        if (!data.cravingSurfs) data.cravingSurfs = [];
+        data.cravingSurfs.push({
+            date: new Date().toISOString(),
+            intensityLog: surfIntensityLog,
+            completed: true
+        });
+        saveData(data);
+    }
+}
+
+function closeCravingSurf() {
+    clearInterval(surfTimer);
+    surfRunning = false;
+    document.getElementById('craving-surf-modal').classList.remove('active');
 }
 
 // =========================================
@@ -3842,6 +4790,85 @@ function nativeShare() {
     }, 'image/png');
 }
 
+function shareMilestone(icon, name, days) {
+    const data = getData();
+    const canvas = document.getElementById('share-canvas');
+    const ctx = canvas.getContext('2d');
+    const W = 540, H = 540;
+    canvas.width = W;
+    canvas.height = H;
+
+    // Background gradient
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#1e1b4b');
+    bg.addColorStop(0.5, '#312e81');
+    bg.addColorStop(1, '#1e1b4b');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Decorative circles
+    ctx.globalAlpha = 0.06;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(80, 100, 120, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(460, 440, 100, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Stars decoration
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    for (let i = 0; i < 20; i++) {
+        const x = Math.sin(i * 7.3) * 200 + 270;
+        const y = Math.cos(i * 5.1) * 200 + 270;
+        ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Milestone icon (large)
+    ctx.font = '80px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(icon, W / 2, 170);
+
+    // Milestone name
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 36px system-ui, -apple-system, sans-serif';
+    ctx.fillText(name, W / 2, 230);
+
+    // "MILESTONE ACHIEVED"
+    ctx.fillStyle = '#a5b4fc';
+    ctx.font = '600 13px system-ui, -apple-system, sans-serif';
+    ctx.letterSpacing = '3px';
+    ctx.fillText('MILESTONE ACHIEVED', W / 2, 260);
+
+    // Days count
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 64px system-ui, -apple-system, sans-serif';
+    ctx.fillText(days, W / 2, 330);
+    ctx.font = '600 16px system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = '#c4b5fd';
+    ctx.fillText('DAYS SOBER', W / 2, 355);
+
+    // User name
+    if (data && data.name) {
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.font = '16px system-ui, -apple-system, sans-serif';
+        ctx.fillText(data.name + "'s Journey", W / 2, 400);
+    }
+
+    // Branding
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '600 12px system-ui, -apple-system, sans-serif';
+    ctx.fillText('SOBER PLEDGE', W / 2, 500);
+
+    // Accent line
+    const line = ctx.createLinearGradient(170, 470, 370, 470);
+    line.addColorStop(0, 'transparent');
+    line.addColorStop(0.5, '#818cf8');
+    line.addColorStop(1, 'transparent');
+    ctx.strokeStyle = line;
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(170, 475); ctx.lineTo(370, 475); ctx.stroke();
+
+    document.getElementById('share-modal').classList.add('active');
+}
+
 // =========================================
 // DAILY QUOTES
 // =========================================
@@ -4109,6 +5136,1142 @@ function renderPledgeWeekDots() {
             <div style="font-size:9px;color:var(--text-muted);margin-top:3px;">${dayLabel}</div>
         </div>`;
     }
+    container.innerHTML = html;
+}
+
+// =========================================
+// PANIC / SOS MODE
+// =========================================
+let _panicBreathInterval = null;
+
+function openPanicMode() {
+    document.getElementById('panic-overlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    // Populate SOS contacts
+    const contacts = getSOSContacts();
+    const contactList = document.getElementById('panic-contact-list');
+    if (contacts.length > 0) {
+        contactList.innerHTML = contacts.map(c =>
+            '<a href="tel:' + c.phone.replace(/[^0-9+]/g, '') + '" style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:rgba(16,185,129,0.1);border-radius:10px;margin-bottom:8px;text-decoration:none;">' +
+            '<div><div style="font-size:15px;font-weight:600;color:#fff;">' + c.name + '</div><div style="font-size:12px;color:rgba(255,255,255,0.5);">' + c.phone + '</div></div>' +
+            '<div style="background:var(--green);color:#fff;border-radius:10px;padding:8px 16px;font-size:14px;font-weight:700;">Call</div></a>'
+        ).join('');
+        document.getElementById('panic-sos-contacts').style.display = '';
+    } else {
+        document.getElementById('panic-sos-contacts').style.display = 'none';
+    }
+
+    // Populate top helplines
+    const topHelplines = [
+        { name: 'SAMHSA (US)', number: '1-800-662-4357' },
+        { name: 'Samaritans (UK)', number: '116 123' },
+        { name: 'Crisis Text Line', number: 'Text HOME to 741741' },
+        { name: 'Lifeline (AU)', number: '13 11 14' }
+    ];
+    document.getElementById('panic-helplines').innerHTML = topHelplines.map(h => {
+        const isPhone = /^[\d\-\(\) +]+$/.test(h.number);
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">' +
+            '<span style="font-size:14px;color:var(--text);">' + h.name + '</span>' +
+            (isPhone ? '<a href="tel:' + h.number.replace(/[^0-9+]/g, '') + '" style="color:var(--orange);font-weight:700;text-decoration:none;font-size:14px;">' + h.number + '</a>' :
+            '<span style="color:var(--orange);font-size:13px;">' + h.number + '</span>') +
+            '</div>';
+    }).join('');
+
+    // Populate reasons
+    const data = getData();
+    const reasons = data && data.whyReasons ? data.whyReasons : [];
+    const reasonsEl = document.getElementById('panic-reasons');
+    if (reasons.length > 0) {
+        reasonsEl.innerHTML = reasons.slice(0, 5).map(r =>
+            '<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--text);">💜 ' + (r.text || r) + '</div>'
+        ).join('');
+    } else {
+        reasonsEl.innerHTML = '<div style="font-size:13px;color:var(--text-muted);">Add your reasons in "Why I Quit" to see them here during tough moments.</div>';
+    }
+}
+
+function closePanicMode() {
+    document.getElementById('panic-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+    if (_panicBreathInterval) { clearInterval(_panicBreathInterval); _panicBreathInterval = null; }
+}
+
+function startPanicBreathing() {
+    if (_panicBreathInterval) { clearInterval(_panicBreathInterval); _panicBreathInterval = null; }
+    const circle = document.getElementById('panic-breath-circle');
+    const btn = document.getElementById('panic-breath-btn');
+    btn.style.display = 'none';
+    let phase = 0; // 0=in, 1=hold, 2=out
+    let count = 4;
+    const phases = [
+        { label: 'Breathe in...', scale: 1.4, duration: 4 },
+        { label: 'Hold...', scale: 1.4, duration: 4 },
+        { label: 'Breathe out...', scale: 1, duration: 6 }
+    ];
+
+    function update() {
+        const p = phases[phase];
+        circle.textContent = p.label;
+        circle.style.transform = 'scale(' + p.scale + ')';
+        circle.style.transitionDuration = (phase === 0 ? '4s' : phase === 2 ? '6s' : '0.3s');
+    }
+    update();
+
+    _panicBreathInterval = setInterval(() => {
+        count--;
+        if (count <= 0) {
+            phase = (phase + 1) % 3;
+            count = phases[phase].duration;
+            update();
+        }
+    }, 1000);
+}
+
+// =========================================
+// DAILY CHALLENGES
+// =========================================
+const dailyChallenges = [
+    { icon: '🚶', text: 'Go for a 15-minute walk', why: 'Movement releases endorphins — your natural mood boost.' },
+    { icon: '📞', text: 'Call or text someone you care about', why: 'Connection is the opposite of addiction.' },
+    { icon: '📝', text: 'Write 3 things you\'re grateful for', why: 'Gratitude rewires your brain for positivity.' },
+    { icon: '💧', text: 'Drink 8 glasses of water today', why: 'Hydration helps your body heal faster.' },
+    { icon: '🧘', text: 'Do 5 minutes of deep breathing', why: 'Calm your nervous system and reduce cravings.' },
+    { icon: '📚', text: 'Read for 20 minutes', why: 'Feed your mind with something other than cravings.' },
+    { icon: '🍳', text: 'Cook a healthy meal from scratch', why: 'Nourishing your body is an act of self-love.' },
+    { icon: '🎵', text: 'Listen to an uplifting song and really focus on it', why: 'Music activates the same reward pathways alcohol does.' },
+    { icon: '🧹', text: 'Tidy one room or space in your home', why: 'External order creates internal calm.' },
+    { icon: '😊', text: 'Compliment 3 people today', why: 'Giving kindness fills you up too.' },
+    { icon: '🌅', text: 'Watch the sunrise or sunset', why: 'Nature is one of the most powerful stress relievers.' },
+    { icon: '✍️', text: 'Write a letter to your future sober self', why: 'Remind yourself why this journey matters.' },
+    { icon: '🏋️', text: 'Do 20 push-ups or a short workout', why: 'Exercise is one of the best tools for recovery.' },
+    { icon: '🚿', text: 'Take a cold shower for 30 seconds', why: 'Resets your nervous system and builds mental toughness.' },
+    { icon: '🎨', text: 'Do something creative for 15 minutes', why: 'Creativity is a healthy outlet for emotions.' },
+    { icon: '🤝', text: 'Help someone today — a favor, a kind word', why: 'Service gives purpose and perspective.' },
+    { icon: '📵', text: 'Put your phone away for 1 hour', why: 'Digital detox helps you be present.' },
+    { icon: '🛏️', text: 'Go to bed 30 minutes earlier tonight', why: 'Sleep is when your brain does its deepest healing.' },
+    { icon: '🌿', text: 'Spend 10 minutes outside in nature', why: 'Green spaces reduce cortisol and boost recovery.' },
+    { icon: '😌', text: 'Practice saying "no" to one thing today', why: 'Boundaries protect your sobriety.' },
+    { icon: '🫖', text: 'Make a hot drink and sit with it quietly', why: 'Rituals replace old habits with new ones.' },
+    { icon: '🗂️', text: 'Organise one thing that\'s been bugging you', why: 'Small wins build momentum for big changes.' },
+    { icon: '💪', text: 'Hold a plank for as long as you can', why: 'Physical strength mirrors mental strength.' },
+    { icon: '🎧', text: 'Listen to a recovery podcast or talk', why: 'Learning from others\' journeys strengthens yours.' },
+    { icon: '📸', text: 'Take a photo of something beautiful you notice', why: 'Sobriety lets you see the world clearly again.' },
+    { icon: '🧠', text: 'Learn one new fact or skill today', why: 'Growth mindset is key to lasting recovery.' },
+    { icon: '🤗', text: 'Hug someone (or yourself) for 20 seconds', why: 'Physical touch releases oxytocin — the bonding hormone.' },
+    { icon: '🌊', text: 'Surf a craving: notice it, don\'t act on it', why: 'Every craving you ride out makes you stronger.' },
+    { icon: '🎯', text: 'Set one small goal and accomplish it today', why: 'Achievement builds the self-trust addiction took away.' },
+    { icon: '😴', text: 'Take a 20-minute power nap', why: 'Rest isn\'t lazy — it\'s recovery in action.' },
+    { icon: '🖊️', text: 'Journal about how sobriety has changed you', why: 'Reflection strengthens your commitment.' }
+];
+
+function getChallengeCompletion() {
+    return JSON.parse(localStorage.getItem('soberpledge-challenges') || '{}');
+}
+
+function renderDailyChallenge() {
+    const today = new Date();
+    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+    const challenge = dailyChallenges[dayOfYear % dailyChallenges.length];
+
+    document.getElementById('challenge-icon').textContent = challenge.icon;
+    document.getElementById('challenge-text').textContent = challenge.text;
+    document.getElementById('challenge-why').textContent = challenge.why;
+
+    const completed = getChallengeCompletion();
+    const todayStr = today.toISOString().split('T')[0];
+    if (completed[todayStr]) {
+        document.getElementById('challenge-btn').style.display = 'none';
+        document.getElementById('challenge-done').style.display = 'block';
+    } else {
+        document.getElementById('challenge-btn').style.display = '';
+        document.getElementById('challenge-done').style.display = 'none';
+    }
+}
+
+function completeChallenge() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const completed = getChallengeCompletion();
+    completed[todayStr] = true;
+    localStorage.setItem('soberpledge-challenges', JSON.stringify(completed));
+    document.getElementById('challenge-btn').style.display = 'none';
+    document.getElementById('challenge-done').style.display = 'block';
+    launchConfetti();
+}
+
+// =========================================
+// REWARDS SYSTEM
+// =========================================
+function getRewards() {
+    return JSON.parse(localStorage.getItem('soberpledge-rewards') || '[]');
+}
+function saveRewards(rewards) {
+    localStorage.setItem('soberpledge-rewards', JSON.stringify(rewards));
+}
+
+function addReward() {
+    const daysEl = document.getElementById('reward-days');
+    const inputEl = document.getElementById('reward-input');
+    const name = inputEl.value.trim();
+    if (!name) return;
+    const days = parseInt(daysEl.value);
+    const rewards = getRewards();
+    rewards.push({ id: Date.now(), days: days, name: name, claimed: false });
+    rewards.sort((a, b) => a.days - b.days);
+    saveRewards(rewards);
+    inputEl.value = '';
+    renderRewards();
+    renderNextReward();
+}
+
+function claimReward(id) {
+    const rewards = getRewards();
+    const r = rewards.find(x => x.id === id);
+    if (r) r.claimed = true;
+    saveRewards(rewards);
+    renderRewards();
+    renderNextReward();
+}
+
+function removeReward(id) {
+    let rewards = getRewards();
+    rewards = rewards.filter(x => x.id !== id);
+    saveRewards(rewards);
+    renderRewards();
+    renderNextReward();
+}
+
+function renderRewards() {
+    const container = document.getElementById('reward-list');
+    if (!container) return;
+    const rewards = getRewards();
+    const data = getData();
+    const parts = (data.soberDate || '').split('-');
+    const soberStart = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    const currentDays = Math.max(0, Math.floor((new Date() - soberStart) / 86400000));
+
+    if (rewards.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:12px 0;">No rewards set yet. Treat yourself!</div>';
+        return;
+    }
+
+    let html = '';
+    rewards.forEach(r => {
+        const unlocked = currentDays >= r.days;
+        const pct = Math.min(100, Math.round((currentDays / r.days) * 100));
+        html += '<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">';
+        html += '<div style="flex:1;min-width:0;">';
+        html += '<div style="display:flex;align-items:center;gap:8px;">';
+        html += '<span style="font-size:18px;">' + (r.claimed ? '✅' : unlocked ? '🎉' : '🎁') + '</span>';
+        html += '<div>';
+        html += '<div style="font-size:14px;font-weight:600;color:var(--text);' + (r.claimed ? 'text-decoration:line-through;opacity:0.6;' : '') + '">' + r.name + '</div>';
+        html += '<div style="font-size:11px;color:var(--text-muted);">' + r.days + ' days' + (r.claimed ? ' — Claimed!' : unlocked ? ' — Unlocked!' : ' · ' + pct + '% there') + '</div>';
+        html += '</div></div>';
+        if (!r.claimed && !unlocked) {
+            html += '<div style="width:60px;height:4px;background:var(--border);border-radius:2px;margin-top:6px;"><div style="width:' + pct + '%;height:100%;background:var(--gradient-warm);border-radius:2px;"></div></div>';
+        }
+        html += '</div>';
+        html += '<div style="display:flex;gap:6px;align-items:center;">';
+        if (unlocked && !r.claimed) html += '<button onclick="claimReward(' + r.id + ')" class="btn btn-small btn-green" style="font-size:11px;">Claim</button>';
+        html += '<button onclick="removeReward(' + r.id + ')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;">✕</button>';
+        html += '</div></div>';
+    });
+    container.innerHTML = html;
+}
+
+function renderNextReward() {
+    const card = document.getElementById('next-reward-card');
+    if (!card) return;
+    const rewards = getRewards();
+    const data = getData();
+    if (!data || rewards.length === 0) { card.style.display = 'none'; return; }
+
+    const parts = (data.soberDate || '').split('-');
+    const soberStart = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    const currentDays = Math.max(0, Math.floor((new Date() - soberStart) / 86400000));
+
+    // Find next unclaimed reward
+    const next = rewards.find(r => !r.claimed && r.days > currentDays);
+    const justUnlocked = rewards.find(r => !r.claimed && r.days <= currentDays);
+
+    if (justUnlocked) {
+        card.style.display = 'block';
+        document.getElementById('next-reward-icon').textContent = '🎉';
+        document.getElementById('next-reward-name').textContent = justUnlocked.name;
+        document.getElementById('next-reward-progress').textContent = 'Unlocked! Go to Profile to claim your reward.';
+        document.getElementById('next-reward-bar').style.width = '100%';
+    } else if (next) {
+        card.style.display = 'block';
+        const daysLeft = next.days - currentDays;
+        const pct = Math.round((currentDays / next.days) * 100);
+        document.getElementById('next-reward-icon').textContent = '🎁';
+        document.getElementById('next-reward-name').textContent = next.name;
+        document.getElementById('next-reward-progress').textContent = daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + ' to go (' + pct + '%)';
+        document.getElementById('next-reward-bar').style.width = pct + '%';
+    } else {
+        card.style.display = 'none';
+    }
+}
+
+// =========================================
+// DAILY AFFIRMATIONS
+// =========================================
+const affirmations = [
+    "I am stronger than any craving. This moment will pass.",
+    "Every sober day is a gift I give myself.",
+    "I deserve a clear mind and a healthy body.",
+    "My sobriety is the foundation for everything good in my life.",
+    "I am not defined by my past. I am defined by my choices today.",
+    "The urge is temporary. My strength is permanent.",
+    "I wake up grateful, clear-headed, and proud.",
+    "I am breaking the cycle — not just for me, but for everyone I love.",
+    "Recovery is not a straight line, and that's okay.",
+    "I choose freedom over temporary escape.",
+    "My feelings are valid, and I don't need a drink to process them.",
+    "I am worth the effort it takes to stay sober.",
+    "Today I will not drink, and that is enough.",
+    "I am building a life I don't need to escape from.",
+    "Each day sober is proof that I can do hard things.",
+    "I trust myself more every single day.",
+    "My clarity of mind is my superpower.",
+    "I am healing, even when it doesn't feel like it.",
+    "Sobriety is not what I gave up — it's what I gained.",
+    "I am present. I am here. I am enough.",
+    "The person I'm becoming is worth the discomfort.",
+    "I don't need alcohol to celebrate, to relax, or to cope.",
+    "I am writing a new story for my life, one day at a time.",
+    "My strength grows with every urge I overcome.",
+    "I am surrounded by possibilities that sobriety has opened up.",
+    "I forgive myself for yesterday. I show up for myself today.",
+    "My mind is clearer, my body is stronger, my spirit is lighter.",
+    "I choose to feel everything fully — the joy and the pain.",
+    "I am not alone in this journey, and I never will be.",
+    "Today, I choose me. And that's the bravest thing I can do.",
+    "Every morning I wake up sober is a morning I win.",
+    "I am relearning who I am — and I like what I'm finding.",
+    "The life I want is on the other side of this craving.",
+    "I am proof that change is possible.",
+    "My sobriety is non-negotiable. I've earned every day of it."
+];
+
+let _affirmationIdx = 0;
+
+function renderAffirmation() {
+    // Use day of year for initial index so it changes daily
+    const now = new Date();
+    const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+    _affirmationIdx = dayOfYear % affirmations.length;
+    const el = document.getElementById('affirmation-text');
+    if (el) el.textContent = affirmations[_affirmationIdx];
+    updateAffirmationFav();
+}
+
+function nextAffirmation() {
+    _affirmationIdx = (_affirmationIdx + 1) % affirmations.length;
+    const el = document.getElementById('affirmation-text');
+    if (el) {
+        el.style.opacity = '0';
+        setTimeout(() => {
+            el.textContent = affirmations[_affirmationIdx];
+            el.style.opacity = '1';
+        }, 150);
+        el.style.transition = 'opacity 0.15s';
+    }
+    updateAffirmationFav();
+}
+
+function getFavAffirmations() {
+    return JSON.parse(localStorage.getItem('soberpledge-fav-affirmations') || '[]');
+}
+
+function toggleFavAffirmation() {
+    const favs = getFavAffirmations();
+    const current = affirmations[_affirmationIdx];
+    const idx = favs.indexOf(current);
+    if (idx >= 0) favs.splice(idx, 1);
+    else favs.push(current);
+    localStorage.setItem('soberpledge-fav-affirmations', JSON.stringify(favs));
+    updateAffirmationFav();
+}
+
+function updateAffirmationFav() {
+    const btn = document.getElementById('affirmation-fav-btn');
+    if (!btn) return;
+    const favs = getFavAffirmations();
+    const isFav = favs.includes(affirmations[_affirmationIdx]);
+    btn.textContent = isFav ? '♥' : '♡';
+    btn.style.color = isFav ? '#ec4899' : 'var(--text-muted)';
+}
+
+// =========================================
+// STATS DASHBOARD
+// =========================================
+function renderStats() {
+    const data = getData();
+    if (!data) return;
+
+    // Basic numbers
+    const parts = (data.soberDate || '').split('-');
+    const soberStart = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 0, 0);
+    const totalDays = Math.max(0, Math.floor((new Date() - soberStart) / 86400000));
+    const pledges = data.pledges || [];
+    const pledgeRate = totalDays > 0 ? Math.round((pledges.length / totalDays) * 100) : 0;
+
+    const el = id => document.getElementById(id);
+    if (el('stats-total-days')) el('stats-total-days').textContent = totalDays;
+    if (el('stats-total-pledges')) el('stats-total-pledges').textContent = pledges.length;
+    if (el('stats-pledge-rate')) el('stats-pledge-rate').textContent = Math.min(100, pledgeRate) + '%';
+
+    // Mood trend chart (30 days)
+    const moodCanvas = el('stats-mood-chart');
+    if (moodCanvas) {
+        const ctx = moodCanvas.getContext('2d');
+        const W = moodCanvas.width, H = moodCanvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const moods = data.moods || [];
+        const moodMap = { great: 5, good: 4, okay: 3, struggling: 2, rough: 1 };
+        const today = new Date();
+        const points = [];
+        for (let i = 29; i >= 0; i--) {
+            const d = new Date(today); d.setDate(d.getDate() - i);
+            const ds = d.toISOString().split('T')[0];
+            const m = moods.find(x => x.date === ds);
+            points.push(m ? (moodMap[m.mood] || 3) : null);
+        }
+
+        // Grid lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        ctx.lineWidth = 1;
+        for (let i = 1; i <= 4; i++) {
+            const y = H - (i / 5) * H;
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+        }
+
+        // Draw line
+        const validPoints = points.map((p, i) => p !== null ? { x: (i / 29) * (W - 20) + 10, y: H - 10 - ((p - 1) / 4) * (H - 20) } : null);
+        ctx.beginPath();
+        ctx.strokeStyle = '#6366f1';
+        ctx.lineWidth = 2.5;
+        ctx.lineJoin = 'round';
+        let started = false;
+        validPoints.forEach(p => {
+            if (p) { if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y); }
+        });
+        ctx.stroke();
+
+        // Fill area
+        if (started) {
+            ctx.lineTo(validPoints.filter(p => p).pop().x, H);
+            ctx.lineTo(validPoints.find(p => p).x, H);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(0, 0, 0, H);
+            grad.addColorStop(0, 'rgba(99,102,241,0.3)');
+            grad.addColorStop(1, 'rgba(99,102,241,0)');
+            ctx.fillStyle = grad;
+            ctx.fill();
+        }
+
+        // Dots
+        validPoints.forEach(p => {
+            if (p) {
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#6366f1'; ctx.fill();
+            }
+        });
+
+        // Labels
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.font = '10px system-ui';
+        ctx.textAlign = 'right';
+        const labels = ['Rough','Struggling','Okay','Good','Great'];
+        labels.forEach((l, i) => {
+            ctx.fillText(l, W - 4, H - 6 - (i / 4) * (H - 20));
+        });
+    }
+
+    // Craving chart from check-ins
+    const cravingCanvas = el('stats-craving-chart');
+    if (cravingCanvas) {
+        const ctx = cravingCanvas.getContext('2d');
+        const W = cravingCanvas.width, H = cravingCanvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const checkins = getCheckins().slice().reverse(); // oldest first
+        const last20 = checkins.slice(-20);
+
+        if (last20.length > 1) {
+            // Bar chart
+            const barW = Math.min(14, (W - 20) / last20.length - 2);
+            const gap = (W - 20) / last20.length;
+            last20.forEach((c, i) => {
+                const x = 10 + i * gap;
+                const barH = (c.craving / 10) * (H - 20);
+                const hue = 120 - (c.craving * 12); // green to red
+                ctx.fillStyle = `hsla(${hue}, 70%, 50%, 0.7)`;
+                ctx.beginPath();
+                ctx.roundRect(x, H - 10 - barH, barW, barH, 3);
+                ctx.fill();
+            });
+            // Average line
+            const avg = last20.reduce((s, c) => s + c.craving, 0) / last20.length;
+            const avgY = H - 10 - (avg / 10) * (H - 20);
+            ctx.strokeStyle = 'rgba(239,68,68,0.5)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath(); ctx.moveTo(10, avgY); ctx.lineTo(W - 10, avgY); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = 'rgba(239,68,68,0.7)';
+            ctx.font = '10px system-ui';
+            ctx.fillText('avg: ' + avg.toFixed(1), W - 50, avgY - 4);
+        } else {
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.font = '13px system-ui';
+            ctx.textAlign = 'center';
+            ctx.fillText('Complete more check-ins to see craving trends', W / 2, H / 2);
+        }
+    }
+
+    // Check-in summary
+    const summaryEl = el('stats-checkin-summary');
+    if (summaryEl) {
+        const checkins = getCheckins();
+        if (checkins.length > 0) {
+            const avgFeeling = (checkins.reduce((s, c) => s + (c.feeling || 5), 0) / checkins.length).toFixed(1);
+            const avgCraving = (checkins.reduce((s, c) => s + (c.craving || 0), 0) / checkins.length).toFixed(1);
+            const sleepCounts = {};
+            checkins.forEach(c => { if (c.sleep) sleepCounts[c.sleep] = (sleepCounts[c.sleep] || 0) + 1; });
+            const topSleep = Object.entries(sleepCounts).sort((a, b) => b[1] - a[1])[0];
+            const energyCounts = {};
+            checkins.forEach(c => { if (c.energy) energyCounts[c.energy] = (energyCounts[c.energy] || 0) + 1; });
+            const topEnergy = Object.entries(energyCounts).sort((a, b) => b[1] - a[1])[0];
+
+            summaryEl.innerHTML = `
+                <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;">
+                    <div style="font-size:24px;font-weight:800;color:var(--accent);">${avgFeeling}</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Avg Feeling</div>
+                </div>
+                <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;">
+                    <div style="font-size:24px;font-weight:800;color:var(--orange);">${avgCraving}</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Avg Craving</div>
+                </div>
+                <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;">
+                    <div style="font-size:24px;font-weight:800;color:var(--green);">${topSleep ? topSleep[0] : '—'}</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Most Common Sleep</div>
+                </div>
+                <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;">
+                    <div style="font-size:24px;font-weight:800;color:#8b5cf6;">${topEnergy ? topEnergy[0] : '—'}</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Most Common Energy</div>
+                </div>
+            `;
+        } else {
+            summaryEl.innerHTML = '<div style="grid-column:span 2;text-align:center;color:var(--text-muted);font-size:13px;padding:16px;">Complete daily check-ins to see your summary here.</div>';
+        }
+    }
+
+    // Savings breakdown
+    const savingsEl = el('stats-savings-breakdown');
+    if (savingsEl) {
+        const curr = getCurrencySymbol(data);
+        const weeklySpend = data.weeklySpend || 50;
+        const dailySpend = weeklySpend / 7;
+        const weekly = Math.round(dailySpend * Math.min(totalDays, 7));
+        const monthly = Math.round(dailySpend * Math.min(totalDays, 30));
+        const yearly = Math.round(dailySpend * Math.min(totalDays, 365));
+        const total = Math.round(dailySpend * totalDays);
+
+        savingsEl.innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+                    <span style="color:var(--text-muted);font-size:13px;">This week</span>
+                    <span style="font-weight:700;color:var(--green);">${curr}${weekly.toLocaleString()}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+                    <span style="color:var(--text-muted);font-size:13px;">This month</span>
+                    <span style="font-weight:700;color:var(--green);">${curr}${monthly.toLocaleString()}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+                    <span style="color:var(--text-muted);font-size:13px;">This year</span>
+                    <span style="font-weight:700;color:var(--green);">${curr}${yearly.toLocaleString()}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                    <span style="color:var(--text);font-size:14px;font-weight:600;">Total saved</span>
+                    <span style="font-weight:800;font-size:18px;color:var(--green);">${curr}${total.toLocaleString()}</span>
+                </div>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:8px;text-align:center;">Based on ${curr}${weeklySpend}/week spending</div>
+        `;
+    }
+
+    // Journal summary
+    const journalEl = el('stats-journal-summary');
+    if (journalEl) {
+        const journal = data.journal || [];
+        const tagCounts = {};
+        journal.forEach(j => { tagCounts[j.tag] = (tagCounts[j.tag] || 0) + 1; });
+        const tagColors = { win: 'var(--green)', reflection: 'var(--accent)', gratitude: 'var(--orange)', milestone: '#8b5cf6' };
+        let html = '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">';
+        html += '<div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:var(--accent);">' + journal.length + '</div><div style="font-size:11px;color:var(--text-muted);">Total Entries</div></div>';
+        Object.entries(tagCounts).forEach(([tag, count]) => {
+            html += '<div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:' + (tagColors[tag] || 'var(--text)') + ';">' + count + '</div><div style="font-size:11px;color:var(--text-muted);text-transform:capitalize;">' + tag + 's</div></div>';
+        });
+        html += '</div>';
+        if (journal.length > 0) {
+            const thisWeek = journal.filter(j => {
+                const d = new Date(j.date);
+                return (new Date() - d) < 7 * 86400000;
+            }).length;
+            html += '<div style="font-size:12px;color:var(--text-muted);">📝 ' + thisWeek + ' entries this week</div>';
+        }
+        journalEl.innerHTML = html;
+    }
+}
+
+// =========================================
+// HEALTHY HABITS TRACKER
+// =========================================
+function getHabits() {
+    return JSON.parse(localStorage.getItem('soberpledge-habits') || '[]');
+}
+function saveHabits(habits) {
+    localStorage.setItem('soberpledge-habits', JSON.stringify(habits));
+}
+
+function addHabit() {
+    const input = document.getElementById('habit-input');
+    const name = input.value.trim();
+    if (!name) return;
+    const habits = getHabits();
+    habits.push({ id: Date.now(), name: name, checkins: [] });
+    saveHabits(habits);
+    input.value = '';
+    renderHabits();
+}
+
+function toggleHabitDay(habitId) {
+    const habits = getHabits();
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit) return;
+    const today = new Date().toISOString().split('T')[0];
+    const idx = habit.checkins.indexOf(today);
+    if (idx >= 0) habit.checkins.splice(idx, 1);
+    else habit.checkins.push(today);
+    saveHabits(habits);
+    renderHabits();
+}
+
+function removeHabit(habitId) {
+    let habits = getHabits();
+    habits = habits.filter(h => h.id !== habitId);
+    saveHabits(habits);
+    renderHabits();
+}
+
+function renderHabits() {
+    const container = document.getElementById('habit-list');
+    if (!container) return;
+    const habits = getHabits();
+    if (habits.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:16px 0;">No habits yet. Add one above to start building positive routines.</div>';
+        return;
+    }
+    const today = new Date();
+    let html = '';
+    habits.forEach(h => {
+        const todayStr = today.toISOString().split('T')[0];
+        const checkedToday = h.checkins.includes(todayStr);
+        // Calculate current streak
+        let streak = 0;
+        const d = new Date(today);
+        if (checkedToday) {
+            while (h.checkins.includes(d.toISOString().split('T')[0])) { streak++; d.setDate(d.getDate() - 1); }
+        } else {
+            d.setDate(d.getDate() - 1);
+            while (h.checkins.includes(d.toISOString().split('T')[0])) { streak++; d.setDate(d.getDate() - 1); }
+        }
+        // Last 7 days dots
+        let dots = '';
+        for (let i = 6; i >= 0; i--) {
+            const dd = new Date(today);
+            dd.setDate(dd.getDate() - i);
+            const ds = dd.toISOString().split('T')[0];
+            const done = h.checkins.includes(ds);
+            const isToday = i === 0;
+            const dayLabel = dd.toLocaleDateString('en-GB', { weekday: 'narrow' });
+            dots += '<div style="text-align:center;">';
+            dots += '<div style="width:22px;height:22px;border-radius:50%;background:' + (done ? 'var(--green)' : 'var(--border)') + ';display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;' + (isToday && !done ? 'border:2px solid var(--accent);' : '') + '">' + (done ? '✓' : '') + '</div>';
+            dots += '<div style="font-size:8px;color:var(--text-muted);margin-top:2px;">' + dayLabel + '</div>';
+            dots += '</div>';
+        }
+
+        html += '<div style="padding:12px 0;border-bottom:1px solid var(--border);">';
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">';
+        html += '<div style="display:flex;align-items:center;gap:10px;">';
+        html += '<button onclick="toggleHabitDay(' + h.id + ')" style="width:28px;height:28px;border-radius:8px;border:2px solid ' + (checkedToday ? 'var(--green)' : 'var(--border)') + ';background:' + (checkedToday ? 'var(--green)' : 'none') + ';display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:#fff;">' + (checkedToday ? '✓' : '') + '</button>';
+        html += '<div><div style="font-size:14px;font-weight:600;color:var(--text);">' + h.name + '</div>';
+        html += '<div style="font-size:11px;color:var(--text-muted);">' + (streak > 0 ? '🔥 ' + streak + ' day streak' : 'Start your streak today') + '</div></div>';
+        html += '</div>';
+        html += '<button onclick="removeHabit(' + h.id + ')" style="background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:4px;">✕</button>';
+        html += '</div>';
+        html += '<div style="display:flex;gap:4px;justify-content:center;">' + dots + '</div>';
+        html += '</div>';
+    });
+    container.innerHTML = html;
+}
+
+// =========================================
+// GROUNDING EXERCISES
+// =========================================
+let _boxBreathInterval = null;
+let _bodyScanStep = 0;
+
+function showGrounding() {
+    document.getElementById('urge-intro').style.display = 'none';
+    document.getElementById('grounding-area').style.display = 'block';
+    document.getElementById('grounding-intro').style.display = 'block';
+    document.getElementById('grounding-54321').style.display = 'none';
+    document.getElementById('grounding-box').style.display = 'none';
+    document.getElementById('grounding-body').style.display = 'none';
+}
+
+function closeGrounding() {
+    if (_boxBreathInterval) { clearInterval(_boxBreathInterval); _boxBreathInterval = null; }
+    document.getElementById('grounding-area').style.display = 'none';
+    document.getElementById('urge-intro').style.display = 'block';
+}
+
+function startGrounding(type) {
+    document.getElementById('grounding-intro').style.display = 'none';
+    if (type === '54321') {
+        document.getElementById('grounding-54321').style.display = 'block';
+        render54321Steps();
+    } else if (type === 'box') {
+        document.getElementById('grounding-box').style.display = 'block';
+        document.getElementById('box-breath-start').style.display = '';
+        document.getElementById('box-breath-done').style.display = 'none';
+        document.getElementById('box-breath-instruction').textContent = 'Ready';
+        document.getElementById('box-breath-count').textContent = '';
+        document.getElementById('box-breath-rounds').textContent = '4 rounds remaining';
+        document.getElementById('box-breath-path').style.strokeDashoffset = '640';
+    } else if (type === 'body') {
+        document.getElementById('grounding-body').style.display = 'block';
+        _bodyScanStep = 0;
+        renderBodyScan();
+    }
+}
+
+// --- 5-4-3-2-1 ---
+const senseSteps = [
+    { count: 5, sense: 'SEE', icon: '👁️', color: '#8b5cf6', prompt: 'Name 5 things you can see right now.', hint: 'Look around slowly. A lamp, a wall, your hands...' },
+    { count: 4, sense: 'TOUCH', icon: '✋', color: '#6366f1', prompt: 'Name 4 things you can physically feel.', hint: 'The chair beneath you, fabric on your skin, air on your face...' },
+    { count: 3, sense: 'HEAR', icon: '👂', color: '#0ea5e9', prompt: 'Name 3 things you can hear.', hint: 'Traffic, a clock, your own breathing...' },
+    { count: 2, sense: 'SMELL', icon: '👃', color: '#10b981', prompt: 'Name 2 things you can smell.', hint: 'Food, soap, fresh air... breathe in deeply.' },
+    { count: 1, sense: 'TASTE', icon: '👅', color: '#f59e0b', prompt: 'Name 1 thing you can taste.', hint: 'Coffee, toothpaste, or just the inside of your mouth.' }
+];
+let _currentSenseStep = 0;
+
+function render54321Steps() {
+    _currentSenseStep = 0;
+    document.getElementById('grounding-54321-complete').style.display = 'none';
+    renderSenseStep();
+}
+
+function renderSenseStep() {
+    const container = document.getElementById('grounding-54321-steps');
+    if (_currentSenseStep >= senseSteps.length) {
+        container.innerHTML = '';
+        document.getElementById('grounding-54321-complete').style.display = 'block';
+        return;
+    }
+    const s = senseSteps[_currentSenseStep];
+    let inputs = '';
+    for (let i = 1; i <= s.count; i++) {
+        inputs += '<input type="text" class="form-input sense-input" placeholder="' + i + '..." style="margin-bottom:8px;font-size:14px;padding:12px 14px;" data-sense-idx="' + i + '">';
+    }
+    container.innerHTML = `
+        <div style="text-align:center;margin-bottom:16px;">
+            <div style="font-size:48px;margin-bottom:8px;">${s.icon}</div>
+            <div style="font-size:32px;font-weight:800;color:${s.color};">${s.count}</div>
+            <div style="font-size:11px;font-weight:700;color:${s.color};text-transform:uppercase;letter-spacing:2px;margin-top:2px;">things you can ${s.sense}</div>
+        </div>
+        <p style="color:var(--text-muted);font-size:13px;text-align:center;margin-bottom:16px;">${s.hint}</p>
+        <div style="max-width:320px;margin:0 auto;">
+            ${inputs}
+            <button class="btn btn-green" style="width:100%;margin-top:8px;" onclick="nextSenseStep()">Next →</button>
+        </div>
+        <div style="display:flex;justify-content:center;gap:6px;margin-top:16px;">
+            ${senseSteps.map((_, i) => '<div style="width:8px;height:8px;border-radius:50%;background:' + (i <= _currentSenseStep ? 'var(--accent)' : 'var(--border)') + ';"></div>').join('')}
+        </div>
+    `;
+    // Focus first input
+    const firstInput = container.querySelector('.sense-input');
+    if (firstInput) setTimeout(() => firstInput.focus(), 100);
+}
+
+function nextSenseStep() {
+    _currentSenseStep++;
+    renderSenseStep();
+}
+
+// --- Box Breathing ---
+function startBoxBreathing() {
+    document.getElementById('box-breath-start').style.display = 'none';
+    let round = 0;
+    const totalRounds = 4;
+    const phases = [
+        { label: 'Breathe In', duration: 4 },
+        { label: 'Hold', duration: 4 },
+        { label: 'Breathe Out', duration: 4 },
+        { label: 'Hold', duration: 4 }
+    ];
+
+    function runPhase(phaseIdx) {
+        if (round >= totalRounds) {
+            if (_boxBreathInterval) clearInterval(_boxBreathInterval);
+            document.getElementById('box-breath-instruction').textContent = '';
+            document.getElementById('box-breath-count').textContent = '';
+            document.getElementById('box-breath-rounds').style.display = 'none';
+            document.getElementById('box-breath-done').style.display = 'block';
+            return;
+        }
+        const phase = phases[phaseIdx];
+        let count = phase.duration;
+        document.getElementById('box-breath-instruction').textContent = phase.label;
+        document.getElementById('box-breath-count').textContent = count;
+
+        // Animate the box path
+        const totalPerimeter = 640;
+        const progress = ((round * 4 + phaseIdx) * (totalPerimeter / (totalRounds * 4)));
+        const target = progress + (totalPerimeter / (totalRounds * 4));
+        document.getElementById('box-breath-path').style.transitionDuration = phase.duration + 's';
+        document.getElementById('box-breath-path').style.strokeDashoffset = (totalPerimeter - target);
+
+        document.getElementById('box-breath-rounds').textContent = (totalRounds - round) + ' round' + (totalRounds - round === 1 ? '' : 's') + ' remaining';
+
+        _boxBreathInterval = setInterval(() => {
+            count--;
+            if (count <= 0) {
+                clearInterval(_boxBreathInterval);
+                const nextPhase = phaseIdx + 1;
+                if (nextPhase >= 4) {
+                    round++;
+                    runPhase(0);
+                } else {
+                    runPhase(nextPhase);
+                }
+            } else {
+                document.getElementById('box-breath-count').textContent = count;
+            }
+        }, 1000);
+    }
+    runPhase(0);
+}
+
+// --- Body Scan ---
+const bodyScanParts = [
+    { emoji: '🦶', part: 'Feet', instruction: 'Notice the feeling in your feet. Are they warm? Cold? Tense? Just observe without judgement.' },
+    { emoji: '🦵', part: 'Legs', instruction: 'Bring your attention to your legs. Feel the weight of them. Notice any tension in your calves or thighs.' },
+    { emoji: '🫁', part: 'Belly', instruction: 'Focus on your stomach and abdomen. Notice it rise and fall with each breath. Release any tightness.' },
+    { emoji: '🫀', part: 'Chest', instruction: 'Feel your heartbeat. Notice your chest expanding and contracting. Let your breathing deepen naturally.' },
+    { emoji: '💪', part: 'Arms & Hands', instruction: 'Notice your arms and hands. Are your fists clenched? Gently relax your fingers. Feel the weight of your arms.' },
+    { emoji: '🧣', part: 'Neck & Shoulders', instruction: 'Drop your shoulders away from your ears. Release the tension you carry here. Roll your neck gently.' },
+    { emoji: '😌', part: 'Face & Head', instruction: 'Unclench your jaw. Relax your forehead. Soften the muscles around your eyes. Let your face be at ease.' }
+];
+
+function renderBodyScan() {
+    if (_bodyScanStep >= bodyScanParts.length) {
+        document.getElementById('body-scan-emoji').style.display = 'none';
+        document.getElementById('body-scan-part').style.display = 'none';
+        document.getElementById('body-scan-instruction').style.display = 'none';
+        document.getElementById('body-scan-next').style.display = 'none';
+        document.getElementById('body-scan-dots').style.display = 'none';
+        document.getElementById('body-scan-done').style.display = 'block';
+        return;
+    }
+    const p = bodyScanParts[_bodyScanStep];
+    document.getElementById('body-scan-emoji').textContent = p.emoji;
+    document.getElementById('body-scan-emoji').style.display = '';
+    document.getElementById('body-scan-part').textContent = p.part;
+    document.getElementById('body-scan-part').style.display = '';
+    document.getElementById('body-scan-instruction').textContent = p.instruction;
+    document.getElementById('body-scan-instruction').style.display = '';
+    document.getElementById('body-scan-next').style.display = '';
+    document.getElementById('body-scan-done').style.display = 'none';
+    // Dots
+    document.getElementById('body-scan-dots').innerHTML = bodyScanParts.map((_, i) =>
+        '<div style="width:8px;height:8px;border-radius:50%;background:' + (i <= _bodyScanStep ? 'var(--accent)' : 'var(--border)') + ';"></div>'
+    ).join('');
+    document.getElementById('body-scan-dots').style.display = 'flex';
+}
+
+function nextBodyScan() {
+    _bodyScanStep++;
+    renderBodyScan();
+}
+
+// =========================================
+// DAILY CHECK-IN
+// =========================================
+let checkinData = { feeling: 5, sleep: null, energy: null, craving: 0, note: '' };
+
+function getCheckins() {
+    return JSON.parse(localStorage.getItem('soberpledge-checkins') || '[]');
+}
+
+function todayCheckedIn() {
+    const today = new Date().toISOString().split('T')[0];
+    return getCheckins().some(c => c.date === today);
+}
+
+function renderCheckinPrompt() {
+    const card = document.getElementById('checkin-prompt-card');
+    if (!card) return;
+    if (todayCheckedIn()) {
+        card.style.display = 'flex';
+        card.style.cursor = 'default';
+        card.onclick = null;
+        document.getElementById('checkin-prompt-title').textContent = "Today's Check-in ✓";
+        const last = getCheckins().filter(c => c.date === new Date().toISOString().split('T')[0])[0];
+        const feelLabels = ['','Awful','Rough','Struggling','Low','Okay','Decent','Good','Great','Excellent','Amazing'];
+        document.getElementById('checkin-prompt-sub').textContent = 'Feeling: ' + (feelLabels[last.feeling] || last.feeling) + ' · Sleep: ' + (last.sleep || '—') + ' · Craving: ' + last.craving + '/10';
+        card.style.background = 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.04))';
+    } else {
+        card.style.display = 'flex';
+        card.onclick = openCheckin;
+        document.getElementById('checkin-prompt-title').textContent = 'Daily Check-in';
+        const hour = new Date().getHours();
+        const timeMsg = hour < 12 ? 'Start your morning with a quick reflection' : hour < 17 ? 'Take a midday moment to check in with yourself' : 'How was your day? Reflect before winding down';
+        document.getElementById('checkin-prompt-sub').textContent = timeMsg;
+    }
+}
+
+function openCheckin() {
+    if (todayCheckedIn()) return;
+    checkinData = { feeling: 5, sleep: null, energy: null, craving: 0, note: '' };
+    document.getElementById('checkin-modal').style.display = 'block';
+    document.getElementById('checkin-feeling').value = 5;
+    document.getElementById('checkin-feeling-val').textContent = '5';
+    document.getElementById('checkin-feeling-label').textContent = 'Okay';
+    document.getElementById('checkin-craving').value = 0;
+    document.getElementById('checkin-craving-val').textContent = '0';
+    document.getElementById('checkin-note').value = '';
+    // Reset all steps
+    for (let i = 1; i <= 4; i++) document.getElementById('checkin-step-' + i).style.display = i === 1 ? 'block' : 'none';
+    document.getElementById('checkin-step-done').style.display = 'none';
+    document.getElementById('checkin-step-label').textContent = 'Step 1 of 4';
+    // Reset button selections
+    document.querySelectorAll('#checkin-sleep-btns .btn, #checkin-energy-btns .btn').forEach(b => { b.style.background = ''; b.style.color = ''; });
+    // Live slider updates
+    document.getElementById('checkin-feeling').oninput = function() {
+        const v = parseInt(this.value);
+        checkinData.feeling = v;
+        document.getElementById('checkin-feeling-val').textContent = v;
+        const labels = ['','Awful','Rough','Struggling','Low','Okay','Decent','Good','Great','Excellent','Amazing'];
+        document.getElementById('checkin-feeling-label').textContent = labels[v] || '';
+    };
+    document.getElementById('checkin-craving').oninput = function() {
+        checkinData.craving = parseInt(this.value);
+        document.getElementById('checkin-craving-val').textContent = this.value;
+    };
+}
+
+function closeCheckin() {
+    document.getElementById('checkin-modal').style.display = 'none';
+    renderCheckinPrompt();
+}
+
+function checkinNext(step) {
+    if (step === 2 && !checkinData.feeling) checkinData.feeling = parseInt(document.getElementById('checkin-feeling').value);
+    for (let i = 1; i <= 4; i++) document.getElementById('checkin-step-' + i).style.display = 'none';
+    document.getElementById('checkin-step-' + step).style.display = 'block';
+    document.getElementById('checkin-step-label').textContent = 'Step ' + step + ' of 4';
+}
+
+function selectCheckinOption(field, value, btn) {
+    checkinData[field] = value;
+    const container = btn.parentElement;
+    container.querySelectorAll('.btn').forEach(b => { b.style.background = ''; b.style.color = ''; });
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#fff';
+}
+
+function submitCheckin() {
+    checkinData.feeling = parseInt(document.getElementById('checkin-feeling').value);
+    checkinData.craving = parseInt(document.getElementById('checkin-craving').value);
+    checkinData.note = document.getElementById('checkin-note').value.trim();
+    checkinData.date = new Date().toISOString().split('T')[0];
+    checkinData.time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+    const checkins = getCheckins();
+    checkins.unshift(checkinData);
+    localStorage.setItem('soberpledge-checkins', JSON.stringify(checkins));
+
+    // Show done screen
+    for (let i = 1; i <= 4; i++) document.getElementById('checkin-step-' + i).style.display = 'none';
+    document.getElementById('checkin-step-done').style.display = 'block';
+    document.getElementById('checkin-step-label').textContent = 'Complete';
+
+    const msgs = [
+        "You showed up for yourself today. That matters.",
+        "Checking in is a sign of strength, not weakness.",
+        "Self-awareness is your superpower in recovery.",
+        "Every check-in builds the habit of mindfulness.",
+        "You're paying attention to yourself — that's huge."
+    ];
+    document.getElementById('checkin-done-msg').textContent = msgs[Math.floor(Math.random() * msgs.length)];
+}
+
+// =========================================
+// EMERGENCY HELPLINES
+// =========================================
+const helplineData = {
+    us: [
+        { name: 'SAMHSA National Helpline', number: '1-800-662-4357', desc: 'Free 24/7 treatment referral & info', available: '24/7' },
+        { name: 'Crisis Text Line', number: 'Text HOME to 741741', desc: 'Free crisis counselling via text', available: '24/7' },
+        { name: 'National Suicide Prevention', number: '988', desc: 'Suicide & crisis lifeline', available: '24/7' },
+        { name: 'AA Helpline', number: '1-212-870-3400', desc: 'Alcoholics Anonymous general service', available: '24/7' }
+    ],
+    uk: [
+        { name: 'Drinkline', number: '0300 123 1110', desc: 'Free confidential alcohol helpline', available: 'Weekdays 9am–8pm, Weekends 11am–4pm' },
+        { name: 'Samaritans', number: '116 123', desc: 'Emotional support for anyone in distress', available: '24/7' },
+        { name: 'Alcoholics Anonymous GB', number: '0800 917 7650', desc: 'Free helpline for anyone with a drinking problem', available: '24/7' },
+        { name: 'FRANK', number: '0300 123 6600', desc: 'Drug & alcohol advice', available: '24/7' }
+    ],
+    au: [
+        { name: 'DirectLine', number: '1800 888 236', desc: 'Drug & alcohol counselling', available: '24/7' },
+        { name: 'Lifeline Australia', number: '13 11 14', desc: 'Crisis support and suicide prevention', available: '24/7' },
+        { name: 'Beyond Blue', number: '1300 22 4636', desc: 'Mental health support', available: '24/7' }
+    ],
+    ca: [
+        { name: 'ConnexOntario', number: '1-866-531-2600', desc: 'Drug & alcohol helpline (Ontario)', available: '24/7' },
+        { name: 'Crisis Services Canada', number: '1-833-456-4566', desc: 'Suicide prevention & crisis support', available: '24/7' },
+        { name: 'AA Canada', number: '1-416-487-5591', desc: 'Alcoholics Anonymous support', available: '24/7' }
+    ],
+    ae: [
+        { name: 'National Rehabilitation Centre', number: '800-NRC (672)', desc: 'Addiction treatment & support', available: 'Sun–Thu 8am–3pm' },
+        { name: 'Aman (Abu Dhabi)', number: '800-2626', desc: 'Counselling & emotional support', available: '24/7' },
+        { name: 'Mental Health Helpline', number: '800-4673', desc: 'Free mental health support', available: '24/7' }
+    ],
+    in: [
+        { name: 'NIMHANS Helpline', number: '080-46110007', desc: 'Addiction & mental health support', available: 'Mon–Sat 9:30am–5pm' },
+        { name: 'iCall', number: '9152987821', desc: 'Psychosocial helpline', available: 'Mon–Sat 8am–10pm' },
+        { name: 'Vandrevala Foundation', number: '1860-2662-345', desc: 'Mental health support', available: '24/7' }
+    ],
+    za: [
+        { name: 'SANCA', number: '011 892 3829', desc: 'South African National Council on Alcoholism', available: 'Mon–Fri 8am–4pm' },
+        { name: 'Lifeline South Africa', number: '0861 322 322', desc: 'Crisis counselling', available: '24/7' },
+        { name: 'SADAG', number: '0800 567 567', desc: 'Depression & anxiety group', available: '24/7' }
+    ],
+    intl: [
+        { name: 'AA World Services', number: '+1-212-870-3400', desc: 'Find AA meetings worldwide', available: '24/7' },
+        { name: 'Befrienders Worldwide', number: 'befrienders.org', desc: 'Crisis support in 39 countries', available: 'Varies' },
+        { name: 'SMART Recovery', number: 'smartrecovery.org', desc: 'Science-based mutual support', available: 'Online 24/7' }
+    ]
+};
+
+let activeHelplineRegion = 'all';
+
+function showHelplines(region) {
+    activeHelplineRegion = region;
+    const container = document.getElementById('helpline-list');
+    if (!container) return;
+
+    // Update active tab
+    document.querySelectorAll('[id^="hl-"]').forEach(btn => {
+        btn.style.borderColor = '';
+        btn.style.color = '';
+    });
+    const activeBtn = document.getElementById('hl-' + region);
+    if (activeBtn) { activeBtn.style.borderColor = 'var(--accent)'; activeBtn.style.color = 'var(--accent)'; }
+
+    let regions = region === 'all' ? Object.keys(helplineData) : [region];
+    let html = '';
+    const regionLabels = { us: '🇺🇸 United States', uk: '🇬🇧 United Kingdom', au: '🇦🇺 Australia', ca: '🇨🇦 Canada', ae: '🇦🇪 UAE', in: '🇮🇳 India', za: '🇿🇦 South Africa', intl: '🌍 International' };
+
+    regions.forEach(r => {
+        if (region === 'all') html += '<div style="font-size:12px;font-weight:700;color:var(--accent);margin:12px 0 6px;text-transform:uppercase;letter-spacing:0.5px;">' + (regionLabels[r] || r) + '</div>';
+        (helplineData[r] || []).forEach(h => {
+            const isPhone = /^[\d\+\-\(\) ]+$/.test(h.number.replace(/[^\d\+\-\(\) ]/g, ''));
+            const telLink = isPhone ? 'tel:' + h.number.replace(/[^0-9+]/g, '') : null;
+            html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">';
+            html += '<div style="flex:1;min-width:0;">';
+            html += '<div style="font-size:14px;font-weight:600;color:var(--text);">' + h.name + '</div>';
+            html += '<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">' + h.desc + '</div>';
+            html += '<div style="font-size:11px;color:var(--accent-light);margin-top:2px;">⏰ ' + h.available + '</div>';
+            html += '</div>';
+            if (telLink) {
+                html += '<a href="' + telLink + '" style="background:var(--green);color:#fff;border-radius:12px;padding:8px 14px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;margin-left:10px;">' + h.number + '</a>';
+            } else {
+                html += '<span style="color:var(--accent);font-size:13px;font-weight:600;white-space:nowrap;margin-left:10px;">' + h.number + '</span>';
+            }
+            html += '</div>';
+        });
+    });
+    container.innerHTML = html;
+}
+
+// =========================================
+// PLEDGE CALENDAR
+// =========================================
+let calendarDate = new Date();
+
+function calendarPrevMonth() {
+    calendarDate.setMonth(calendarDate.getMonth() - 1);
+    renderPledgeCalendar();
+}
+function calendarNextMonth() {
+    const now = new Date();
+    const next = new Date(calendarDate);
+    next.setMonth(next.getMonth() + 1);
+    if (next.getFullYear() > now.getFullYear() || (next.getFullYear() === now.getFullYear() && next.getMonth() > now.getMonth())) return;
+    calendarDate = next;
+    renderPledgeCalendar();
+}
+
+function renderPledgeCalendar() {
+    const data = getData();
+    if (!data) return;
+    const container = document.getElementById('pledge-calendar');
+    const label = document.getElementById('calendar-month-label');
+    if (!container) return;
+
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+    label.textContent = calendarDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    const pledgeDates = new Set((data.pledges || []).map(p => p.date));
+    const moodDates = new Set((data.moods || []).map(m => m.date));
+
+    const dayNames = ['S','M','T','W','T','F','S'];
+    let html = '<div class="cal-grid">';
+    dayNames.forEach(d => { html += '<div class="cal-header">' + d + '</div>'; });
+
+    // Empty cells for offset
+    const offset = firstDay === 0 ? 0 : firstDay;
+    for (let i = 0; i < offset; i++) html += '<div class="cal-day empty"></div>';
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+        const isToday = dateStr === todayStr;
+        const isFuture = new Date(year, month, day) > today;
+        const hasPledge = pledgeDates.has(dateStr);
+        const hasMood = moodDates.has(dateStr);
+
+        let cls = 'cal-day';
+        if (isToday) cls += ' today';
+        if (isFuture) cls += ' future';
+        else if (hasPledge && hasMood) cls += ' both';
+        else if (hasPledge) cls += ' pledged';
+        else if (hasMood) cls += ' mood-only';
+
+        html += '<div class="' + cls + '">' + day + '</div>';
+    }
+    html += '</div>';
     container.innerHTML = html;
 }
 
@@ -4440,6 +6603,42 @@ function animateCounter(elementId, target, duration) {
 }
 
 // =========================================
+// LIVE SOBRIETY TIMER
+// =========================================
+let _liveTimerInterval = null;
+function startLiveTimer() {
+    if (_liveTimerInterval) clearInterval(_liveTimerInterval);
+    const el = document.getElementById('live-timer');
+    if (!el) return;
+    const data = getData();
+    if (!data || !data.soberDate) { el.textContent = ''; return; }
+
+    const parts = (data.soberDate || '').split('-');
+    const timeParts = (data.soberTime || '00:00').split(':');
+    const soberStart = new Date(
+        parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]),
+        parseInt(timeParts[0]) || 0, parseInt(timeParts[1]) || 0
+    );
+
+    function tick() {
+        const now = new Date();
+        let diff = Math.max(0, Math.floor((now.getTime() - soberStart.getTime()) / 1000));
+        const days = Math.floor(diff / 86400); diff %= 86400;
+        const hrs = Math.floor(diff / 3600); diff %= 3600;
+        const mins = Math.floor(diff / 60);
+        const secs = diff % 60;
+        const pad = n => String(n).padStart(2, '0');
+        if (days > 0) {
+            el.textContent = days + 'd ' + pad(hrs) + 'h ' + pad(mins) + 'm ' + pad(secs) + 's';
+        } else {
+            el.textContent = pad(hrs) + 'h ' + pad(mins) + 'm ' + pad(secs) + 's';
+        }
+    }
+    tick();
+    _liveTimerInterval = setInterval(tick, 1000);
+}
+
+// =========================================
 // SOBER DATE EDITOR
 // =========================================
 function saveSoberDate() {
@@ -4748,16 +6947,57 @@ function checkPledgeReminder() {
     // If it's morning and no pledge taken, show reminder
     if (hour >= 7 && hour <= 11 && !todayPledge) {
         const lastReminder = localStorage.getItem('soberpledge-last-reminder');
-        if (lastReminder === todayStr) return; // Already reminded today
+        if (lastReminder === todayStr) return;
 
         localStorage.setItem('soberpledge-last-reminder', todayStr);
-        new Notification('Sober Pledge', {
-            body: 'Good morning ' + data.name + '! Ready to take today\'s pledge?',
-            icon: 'icon-192.png',
-            tag: 'daily-pledge'
-        });
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then(reg => {
+                reg.showNotification('Sober Pledge', {
+                    body: 'Good morning ' + data.name + '! Ready to take today\'s pledge?',
+                    icon: 'icon-192.png',
+                    tag: 'daily-pledge',
+                    requireInteraction: true
+                });
+            });
+        } else {
+            new Notification('Sober Pledge', {
+                body: 'Good morning ' + data.name + '! Ready to take today\'s pledge?',
+                icon: 'icon-192.png',
+                tag: 'daily-pledge'
+            });
+        }
+    }
+
+    // Evening check-in reminder
+    const checkins = data.checkins || [];
+    const todayCheckin = checkins.find(c => c.date === todayStr);
+    if (hour >= 19 && hour <= 22 && !todayCheckin) {
+        const lastEvening = localStorage.getItem('soberpledge-last-evening');
+        if (lastEvening === todayStr) return;
+
+        localStorage.setItem('soberpledge-last-evening', todayStr);
+        const msgs = [
+            'How was your day, ' + data.name + '? Take a moment to check in.',
+            'Evening check-in time! How are you feeling tonight?',
+            'You made it through another day. Log how you\'re doing.'
+        ];
+        const body = msgs[Math.floor(Math.random() * msgs.length)];
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then(reg => {
+                reg.showNotification('Sober Pledge', {
+                    body: body,
+                    icon: 'icon-192.png',
+                    tag: 'evening-checkin'
+                });
+            });
+        } else {
+            new Notification('Sober Pledge', { body: body, icon: 'icon-192.png', tag: 'evening-checkin' });
+        }
     }
 }
+
+// Periodic reminder check while app is open (every 30 min)
+setInterval(checkPledgeReminder, 30 * 60 * 1000);
 
 // =========================================
 // BADGES
@@ -4818,8 +7058,9 @@ function renderProfile() {
     const editInput = document.getElementById('ig-edit-input');
 
     if (data.instagram) {
-        handleEl.innerHTML = '<a href="https://instagram.com/' + data.instagram + '" target="_blank">@' + escapeHtml(data.instagram) + '</a>';
-        btnEl.innerHTML = '<a href="https://instagram.com/' + data.instagram + '" target="_blank" class="btn btn-small btn-instagram" style="display:inline-block; margin-top:16px; text-decoration:none;">Follow on Instagram</a>';
+        const safeHandle = encodeURIComponent(data.instagram);
+        handleEl.innerHTML = '<a href="https://instagram.com/' + safeHandle + '" target="_blank">@' + escapeHtml(data.instagram) + '</a>';
+        btnEl.innerHTML = '<a href="https://instagram.com/' + safeHandle + '" target="_blank" class="btn btn-small btn-instagram" style="display:inline-block; margin-top:16px; text-decoration:none;">Follow on Instagram</a>';
         editInput.value = data.instagram;
     } else {
         handleEl.textContent = 'No Instagram linked yet';
@@ -4876,6 +7117,45 @@ function copyProfileLink() {
         alert('Instagram link copied!');
     } else {
         alert('Add your Instagram handle first!');
+    }
+}
+
+function shareProgress() {
+    const data = getData();
+    if (!data) return;
+
+    const streakDays = getStreakDays(data);
+    const moneySaved = getMoneySaved(data);
+    const curr = getCurrencySymbol(data);
+    const pledgeCount = (data.pledges || []).length;
+    const journalCount = (data.journal || []).length;
+
+    let streakLabel = streakDays + ' days';
+    if (streakDays >= 365) streakLabel = Math.floor(streakDays / 365) + ' year' + (streakDays >= 730 ? 's' : '') + ', ' + (streakDays % 365) + ' days';
+    else if (streakDays >= 30) streakLabel = Math.floor(streakDays / 30) + ' month' + (streakDays >= 60 ? 's' : '') + ', ' + (streakDays % 30) + ' days';
+
+    const shareText = '🏆 My Sober Pledge Progress\n\n' +
+        '🔥 Streak: ' + streakLabel + ' sober\n' +
+        '💰 Money saved: ' + curr + moneySaved.toLocaleString() + '\n' +
+        '✅ Pledges taken: ' + pledgeCount + '\n' +
+        '📝 Journal entries: ' + journalCount + '\n\n' +
+        'Every day is a victory. 💪\n\n' +
+        '#SoberPledge #Recovery #Sobriety';
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'My Sober Pledge Progress',
+            text: shareText
+        }).catch(() => {});
+    } else {
+        navigator.clipboard.writeText(shareText).then(() => {
+            const status = document.getElementById('accountability-status');
+            if (status) {
+                status.textContent = 'Progress copied to clipboard! Paste it in a message to your accountability partner.';
+                status.style.color = 'var(--green)';
+                setTimeout(() => { status.textContent = ''; }, 4000);
+            }
+        });
     }
 }
 
@@ -4936,6 +7216,8 @@ function resetAllData() {
     localStorage.removeItem('soberpledge-community');
     localStorage.removeItem('soberpledge-notifs');
     localStorage.removeItem('soberpledge-last-reminder');
+    localStorage.removeItem('soberpledge-last-evening');
+    localStorage.removeItem('soberpledge-ai-key');
     location.reload();
 }
 
