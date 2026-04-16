@@ -2849,13 +2849,8 @@ function initApp() {
     document.getElementById('greeting').textContent = greeting + ', ' + data.name + '.';
     document.getElementById('greeting-sub').textContent = 'How are you feeling today?';
 
-    // Streak — direct inline calculation
-    const _parts = (data.soberDate || '').split('-');
-    const _soberStart = new Date(parseInt(_parts[0]), parseInt(_parts[1]) - 1, parseInt(_parts[2]), 0, 0);
-    const _now = new Date();
-    const _diffMs = _now.getTime() - _soberStart.getTime();
-    const _rawDays = Math.floor(_diffMs / 86400000);
-    let streakDays = Math.max(0, _rawDays);
+    // Streak — use consistent getStreakDays calculation
+    let streakDays = getStreakDays(data);
 
     animateCounter('streak-days', streakDays, 1000);
     startLiveTimer();
