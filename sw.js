@@ -1,8 +1,10 @@
-const CACHE_NAME = 'sober-pledge-v5';
+const CACHE_NAME = 'sober-pledge-v6';
 const ASSETS = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 // Install — cache core assets

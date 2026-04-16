@@ -1,25 +1,121 @@
 {
-  "name": "Sober Pledge",
+  "id": "/sober-pledge/",
+  "name": "Sober Pledge — Your Daily Commitment",
   "short_name": "Sober Pledge",
-  "description": "Your daily commitment to sobriety. Track your journey, fight urges, and celebrate wins.",
-  "start_url": "https://ronnie003ai.github.io/sober-pledge/index.html",
-  "scope": "https://ronnie003ai.github.io/sober-pledge/",
+  "description": "Your daily commitment to sobriety. Track your streak, fight cravings with AI coaching, log your journey, and celebrate every milestone. Free, private, and always with you.",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0a0f1a",
   "theme_color": "#0a0f1a",
   "orientation": "portrait",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["health", "lifestyle", "medical"],
+  "iarc_rating_id": "",
+  "prefer_related_applications": false,
   "icons": [
+    {
+      "src": "icon-48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-narrow.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Sober Pledge home screen showing streak tracker and daily tools"
+    },
+    {
+      "src": "screenshot-wide.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Sober Pledge features overview"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Take Today's Pledge",
+      "short_name": "Pledge",
+      "url": "./index.html#pledge",
+      "icons": [{ "src": "icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Support Chat",
+      "short_name": "Chat",
+      "url": "./index.html#chat",
+      "icons": [{ "src": "icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Urge Fighter",
+      "short_name": "SOS",
+      "url": "./index.html#urge",
+      "icons": [{ "src": "icon-96.png", "sizes": "96x96" }]
     }
   ]
 }
