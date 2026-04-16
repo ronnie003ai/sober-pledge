@@ -1219,26 +1219,45 @@
         .community-comment-input input:focus { border-color: var(--accent); }
         .community-tab-bar {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin-bottom: 16px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding-bottom: 4px;
         }
+        .community-tab-bar::-webkit-scrollbar { display: none; }
         .community-tab {
-            padding: 8px 16px;
+            padding: 8px 14px;
             border-radius: 20px;
             border: 1px solid var(--border);
             background: none;
             color: var(--text-muted);
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
             font-family: inherit;
             font-weight: 500;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
         .community-tab.active {
             background: var(--gradient-accent);
             border-color: transparent;
             color: white;
         }
+        .community-room-header {
+            text-align: center;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+        .community-room-header .room-emoji { font-size: 28px; margin-bottom: 6px; }
+        .community-room-header .room-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+        .community-room-header .room-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+        .community-room-members { font-size: 11px; color: var(--accent); margin-top: 8px; font-weight: 600; }
 
         /* Share Card Modal */
         .share-modal {
@@ -2296,12 +2315,18 @@
     <!-- Community Screen -->
     <div class="screen" id="screen-community">
         <h2 style="margin-bottom: 4px;">Community</h2>
-        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;">You're not alone. Share your journey and support others.</p>
+        <p style="color: var(--text-muted); margin-bottom: 12px; font-size: 14px;">You're not alone. Share your journey and support others.</p>
 
         <div class="community-tab-bar">
-            <button class="community-tab active" onclick="switchCommunityTab('feed')">Feed</button>
+            <button class="community-tab active" onclick="switchCommunityTab('all')">All</button>
+            <button class="community-tab" onclick="switchCommunityTab('fresh')">Fresh Start</button>
+            <button class="community-tab" onclick="switchCommunityTab('building')">Building</button>
+            <button class="community-tab" onclick="switchCommunityTab('stronger')">Stronger</button>
+            <button class="community-tab" onclick="switchCommunityTab('living')">Living Sober</button>
             <button class="community-tab" onclick="switchCommunityTab('my')">My Posts</button>
         </div>
+
+        <div id="community-room-info"></div>
 
         <div class="community-compose">
             <textarea class="community-textarea" id="community-input" placeholder="Share what's on your mind..."></textarea>
@@ -6336,12 +6361,27 @@ function renderPledgeCalendar() {
 }
 
 // =========================================
-// COMMUNITY (Firebase-powered live feed)
+// COMMUNITY (Firebase-powered live feed with rooms)
 // =========================================
-let communityTab = 'feed';
+let communityTab = 'all';
 let firebaseDB = null;
 let communityPostsCache = [];
 let firebaseUserId = null;
+
+const communityRooms = {
+    all:      { emoji: '🌍', title: 'Open Feed', desc: 'Everyone\'s journey, all in one place. See how far people have come.', min: 0, max: Infinity },
+    fresh:    { emoji: '🌱', title: 'Fresh Start', desc: 'Days 0-7. The hardest part is starting. You\'re not alone here.', min: 0, max: 7 },
+    building: { emoji: '💪', title: 'Building Momentum', desc: 'Weeks 1-4. You\'re past the worst. Now build the habits that stick.', min: 7, max: 30 },
+    stronger: { emoji: '🔥', title: 'Getting Stronger', desc: 'Months 1-6. Social situations, identity shifts, real growth.', min: 30, max: 180 },
+    living:   { emoji: '👑', title: 'Living Sober', desc: '6+ months. You\'re proof this works. Share your wisdom.', min: 180, max: Infinity }
+};
+
+function getUserRoom(days) {
+    if (days < 7) return 'fresh';
+    if (days < 30) return 'building';
+    if (days < 180) return 'stronger';
+    return 'living';
+}
 
 // Firebase configuration — replace with your project's config
 const firebaseConfig = {
@@ -6407,7 +6447,26 @@ function saveCommunityPosts(posts) {
 function switchCommunityTab(tab) {
     communityTab = tab;
     document.querySelectorAll('.community-tab').forEach(t => t.classList.remove('active'));
-    document.querySelector(`.community-tab[onclick*="${tab}"]`).classList.add('active');
+    document.querySelector(`.community-tab[onclick*="'${tab}'"]`).classList.add('active');
+
+    const infoEl = document.getElementById('community-room-info');
+    if (infoEl) {
+        if (tab !== 'my' && communityRooms[tab]) {
+            const room = communityRooms[tab];
+            const memberCount = communityPostsCache.filter(p => {
+                if (tab === 'all') return true;
+                return p.days >= room.min && p.days < room.max;
+            }).length;
+            infoEl.innerHTML = '<div class="community-room-header">'
+                + '<div class="room-emoji">' + room.emoji + '</div>'
+                + '<div class="room-title">' + room.title + '</div>'
+                + '<div class="room-desc">' + room.desc + '</div>'
+                + (memberCount > 0 ? '<div class="community-room-members">' + memberCount + ' post' + (memberCount !== 1 ? 's' : '') + ' in this room</div>' : '')
+                + '</div>';
+        } else {
+            infoEl.innerHTML = '';
+        }
+    }
     renderCommunityFeed();
 }
 
@@ -6449,6 +6508,7 @@ function saveCommunityPostLocal(text, photo) {
         initial: data.name.charAt(0).toUpperCase(),
         color: colors[Math.floor(Math.random() * colors.length)],
         days: streakDays,
+        room: getUserRoom(streakDays),
         text: text,
         photo: photo,
         time: 'Just now',
@@ -6471,6 +6531,7 @@ function saveCommunityPostFirebase(text) {
         initial: data.name.charAt(0).toUpperCase(),
         color: colors[Math.floor(Math.random() * colors.length)],
         days: streakDays,
+        room: getUserRoom(streakDays),
         text: text,
         likes: 0,
         likedBy: {},
@@ -6567,19 +6628,23 @@ function renderCommunityFeed() {
 
     let allPosts;
     const myUid = isFirebaseActive() ? firebaseUserId : 'local';
+    const sourcePosts = isFirebaseActive() ? communityPostsCache : getCommunityPosts();
 
-    if (isFirebaseActive()) {
-        if (communityTab === 'my') {
-            allPosts = communityPostsCache.filter(p => p.uid === firebaseUserId);
-        } else {
-            allPosts = communityPostsCache;
-        }
+    if (communityTab === 'my') {
+        allPosts = isFirebaseActive()
+            ? sourcePosts.filter(p => p.uid === firebaseUserId)
+            : sourcePosts;
+    } else if (communityTab === 'all') {
+        allPosts = sourcePosts;
     } else {
-        allPosts = getCommunityPosts();
-        if (communityTab === 'my') {
-            // All local posts are the user's
+        const room = communityRooms[communityTab];
+        if (room) {
+            allPosts = sourcePosts.filter(p => {
+                const days = p.days || 0;
+                return days >= room.min && days < room.max;
+            });
         } else {
-            // In local mode, just show user's posts
+            allPosts = sourcePosts;
         }
     }
 
@@ -6632,7 +6697,7 @@ function renderCommunityFeed() {
                     <div class="community-avatar" style="background:${post.color || '#6366f1'}">${escapeHtml(post.initial || '?')}</div>
                     <div>
                         <div class="community-post-name">${escapeHtml(post.name || 'Anonymous')}</div>
-                        <div class="community-post-meta">${post.days || 0} days sober · ${timeStr}</div>
+                        <div class="community-post-meta">${post.days || 0} days sober · ${timeStr}${communityTab === 'all' && post.room && communityRooms[post.room] ? ' · ' + communityRooms[post.room].emoji : ''}</div>
                     </div>
                 </div>
                 <div class="community-post-text">${escapeHtml(post.text || '')}</div>

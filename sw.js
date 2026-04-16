@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sober-pledge-v10';
+const CACHE_NAME = 'sober-pledge-v11';
 const ASSETS = [
   './',
   './index.html',
